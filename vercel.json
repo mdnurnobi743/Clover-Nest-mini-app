@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/bot.js": { "maxDuration": 30 },
+    "api/user.js": { "maxDuration": 10 },
+    "api/earn.js": { "maxDuration": 10 },
+    "api/data.js": { "maxDuration": 10 }
+  },
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
