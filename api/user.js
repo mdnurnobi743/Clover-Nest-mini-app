@@ -19,7 +19,7 @@ import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { getClientIp, checkDevice, claimDevice, claimDeviceForUser, getOwnerPublicInfo } from '../lib/ipRegistry.js';
 
-const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
+const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
 async function handleInit(req, res, db) {
     const initData = req.body?.initData;
@@ -266,4 +266,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-    }
+}
