@@ -20,7 +20,7 @@ import {
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
 
-const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
+const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
 async function handleStatus(req, res, db) {
     res.setHeader('Cache-Control', 'no-store, max-age=0');
