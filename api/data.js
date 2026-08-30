@@ -73,9 +73,29 @@ export default async function handler(req, res) {
             return res.status(200).json({ ok: true, top });
         }
 
+        // ⚠️ NEW — Home tab's "Platform stats" strip (Total Users / Clover
+        // Collected / Total Withdrawn). All three are real live aggregates,
+        // not display placeholders — same numbers the admin's a_stats
+        // screen in bot.js is built from, just the public-safe subset.
+        if (type === 'platformStats') {
+            const usersCol = db.collection('users');
+            const withdrawalsCol = db.collection('withdrawals');
+            const [totalUsers, cloverAgg, withdrawAgg] = await Promise.all([
+                usersCol.countDocuments({}),
+                usersCol.aggregate([{ $group: { _id: null, total: { $sum: '$lifetimeWtcEarned' } } }]).toArray(),
+                withdrawalsCol.aggregate([{ $match: { status: 'approved' } }, { $group: { _id: null, total: { $sum: '$cashAmount' } } }]).toArray(),
+            ]);
+            return res.status(200).json({
+                ok: true,
+                totalUsers,
+                totalCloverCollected: cloverAgg[0]?.total || 0,
+                totalWithdrawnUsd: withdrawAgg[0]?.total || 0,
+            });
+        }
+
         return res.status(400).json({ ok: false, error: 'unknown_type' });
     } catch (err) {
         console.error('data error:', err);
         return res.status(500).json({ ok: false, error: 'server_error' });
     }
-        }
+}
