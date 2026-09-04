@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CLOVER NEST — Earn & Grow</title>
+<title>CAST NEST — Earn & Grow</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -49,93 +49,84 @@
 <script defer src="https://uslads.com/sdk/tower-ads-v4.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
     :root {
-        /* ══ THEME — "Emerald Professional v2" ══
-           Tuning pass on the redesign — the first pass read too flat/murky
-           (surfaces + background were too close in value, so cards barely
-           separated from the page and everything blended into one dark
-           green blob). Fixed by: (1) a noticeably lighter, slightly
-           desaturated-navy-green surface for cards so they visibly lift
-           off the near-black page, (2) a brighter/more saturated brand
-           green (was a muted #12C48B, now a punchier #17E39B) so it reads
-           as "premium fintech" instead of "washed out", (3) a visible
-           mint-tinted border on every card instead of a near-invisible
-           14%-opacity one, (4) a bit of the glow/shimmer polish brought
-           back in (hero sheen sweep, brighter ambient blobs) — tasteful
-           motion, not the old neon-everywhere look. Same variable NAMES
-           as before are kept — hundreds of rules reference them. */
-        --bg: #050F0B;
-        --bg-nebula-1: rgba(23,227,155,0.11);    /* emerald glow */
-        --bg-nebula-2: rgba(255,197,61,0.06);    /* faint gold glow */
-        --surface: #0B1F18;
-        --surface-raised: #12291F;
-        --surface-pop: #1A3A2C;
-        /* visible glass surfaces — lighter, more opaque fill + a real
-           border so cards clearly lift off the page instead of blending
-           into it (kept as plain colors, not gradients, since several
-           rules nest this variable inside their own gradient()) */
-        --glass-bg: rgba(23,74,54,0.5);
-        --glass-bg-raised: rgba(28,86,63,0.56);
-        --glass-border: rgba(23,227,155,0.26);
-        --glass-border-violet: rgba(255,197,61,0.28); /* gold-tinted premium border */
-        /* ── Emerald — the single brand green: balance/reward/primary,
-           brighter/more saturated than the first pass so it pops off the
-           dark surface instead of reading muddy ── */
-        --coin: #17E39B;
-        --coin-deep: #0BAE79;
-        --coin-soft: rgba(23,227,155,0.20);
-        /* ── Leaf Green — primary action / CTA accent ── */
-        --accent: #2EE06A;
-        --accent-soft: rgba(46,224,106,0.20);
-        /* ── Warm Gold — the ONE secondary accent: premium/VIP + wallet ── */
-        --signal: #FFC53D;
-        --signal-soft: rgba(255,197,61,0.20);
-        --ink: #F4FBF7;
-        --ink-muted: #9AC0B0;
-        --ink-faint: #5C7A6C;
-        --border: rgba(23,227,155,0.20);
-        --border-strong: rgba(23,227,155,0.36);
-        --danger: #FF5C6A;
-        --danger-soft: rgba(255,92,106,0.14);
-        --success: #17E39B;
-        --pending: #FFC53D;
+        /* ══ THEME — "Midnight Ocean × Electric Cyan × Neon Violet" ══
+           Requested premium/futuristic redesign. Same variable NAMES as
+           before (--coin, --accent, --signal, --money etc.) are kept on
+           purpose — hundreds of rules throughout this file reference them,
+           so remapping the VALUES here recolors the whole app safely
+           without having to touch every single rule individually. */
+        --bg: #050914;
+        --bg-nebula-1: rgba(0,200,255,0.10);    /* electric cyan glow */
+        --bg-nebula-2: rgba(124,60,255,0.09);   /* neon violet glow */
+        --surface: #0C1220;
+        --surface-raised: #111A2E;
+        --surface-pop: #16213A;
+        /* glass surfaces — used specifically by .card / hero cards for the
+           requested dark-glassmorphism look (semi-transparent + blur) */
+        --glass-bg: rgba(13,19,36,0.58);
+        --glass-bg-raised: rgba(17,26,46,0.62);
+        --glass-border: rgba(0,200,255,0.16);
+        --glass-border-violet: rgba(124,60,255,0.20);
+        /* ── Aqua Mint — reward/success/earn primary (was lime-green "--coin") ── */
+        --coin: #00F5D4;
+        --coin-deep: #00A88F;
+        --coin-soft: rgba(0,245,212,0.16);
+        /* ── Electric Cyan — primary/video accent (was broadcast-signal red) ── */
+        --accent: #00C8FF;
+        --accent-soft: rgba(0,200,255,0.16);
+        /* ── Neon Violet — premium/wallet accent (was parchment "--signal") ── */
+        --signal: #7C3CFF;
+        --signal-soft: rgba(124,60,255,0.16);
+        --ink: #F4F8FF;
+        --ink-muted: #93A6C6;    /* soft blue-gray, per spec */
+        --ink-faint: #5B6D8C;
+        --border: rgba(0,200,255,0.12);         /* subtle cyan, per spec */
+        --border-strong: rgba(124,60,255,0.24); /* subtle violet, per spec */
+        --danger: #FF4D6D;
+        --danger-soft: rgba(255,77,109,0.14);
+        --success: #00F5D4;
+        --pending: #FFC857;
         --pending-ink: #241A02;  /* dark text/icon color to sit on top of --pending fills */
-        /* ── functional colors — kept inside the green/gold family so the
-           app reads as one coherent brand instead of a rainbow of
-           per-section hues. ── */
-        --money: #17E39B;        /* withdraw / cash-out — unified with the emerald reward color */
-        --money-soft: rgba(23,227,155,0.18);
-        --task-hue: #3FE0A5;     /* channel/group join tasks — light emerald */
-        --task-soft: rgba(63,224,165,0.18);
-        --daily-hue: #1FBE5C;    /* daily task — deep green */
-        --daily-soft: rgba(31,190,92,0.18);
-        --exclusive-hue: #FFC53D; /* exclusive task — gold, premium/VIP feel */
-        --exclusive-soft: rgba(255,197,61,0.20);
-        --partner-hue: #17E39B;  /* partner task — emerald */
-        --partner-soft: rgba(23,227,155,0.18);
-        --earning-hue: #17E39B;  /* earning/referral task — emerald */
-        --earning-soft: rgba(23,227,155,0.16);
-        --gift-hue: #FFC53D;     /* admin gifts — gold */
-        --gift-soft: rgba(255,197,61,0.18);
-        --refer-hue: #17E39B;    /* referrals — emerald */
-        --refer-soft: rgba(23,227,155,0.18);
+        /* ── functional colors — remapped into the cyan/violet/mint family
+           instead of the old unrelated brass/gold/copper/verdigris set, so
+           the app reads as one coherent palette instead of a rainbow of
+           per-section hues (matches the "not too colorful/crowded" ask). ── */
+        --money: #00F5D4;        /* withdraw / cash-out — unified with the mint reward color */
+        --money-soft: rgba(0,245,212,0.16);
+        --video-hue: #00C8FF;    /* video / lootbox section — electric cyan */
+        --video-soft: rgba(0,200,255,0.16);
+        --task-hue: #33D6FF;     /* channel/group join tasks — lighter cyan */
+        --task-soft: rgba(51,214,255,0.16);
+        --daily-hue: #00C8FF;    /* daily task — cyan */
+        --daily-soft: rgba(0,200,255,0.16);
+        --exclusive-hue: #9D6FFF; /* exclusive task — violet, premium/VIP feel */
+        --exclusive-soft: rgba(157,111,255,0.18);
+        --partner-hue: #00F5D4;  /* partner task — mint */
+        --partner-soft: rgba(0,245,212,0.16);
+        --earning-hue: #00F5D4;  /* earning/referral task — mint */
+        --earning-soft: rgba(0,245,212,0.14);
+        --gift-hue: #9D6FFF;     /* admin gifts — light violet */
+        --gift-soft: rgba(157,111,255,0.16);
+        --refer-hue: #7C3CFF;    /* referrals — neon violet */
+        --refer-soft: rgba(124,60,255,0.16);
         /* ── ad network tags — left distinguishable, lightly tuned so none
-           of them clash against the new green/gold palette ── */
+           of them clash against the new cool palette ── */
         --net-adsgram-daily: #4FA3F7;
         --net-adsgram-daily-soft: rgba(79,163,247,0.16);
         --net-adsgram-daily-deep: #1F5FA8;
         --net-monetag: #4ADE80;
         --net-monetag-soft: rgba(74,222,128,0.16);
         --net-monetag-deep: #1E8E4F;
-        --net-giga: #FFC53D;
-        --net-giga-soft: rgba(255,197,61,0.18);
-        --net-giga-deep: #A9781C;
+        --net-giga: #9D6FFF;
+        --net-giga-soft: rgba(157,111,255,0.18);
+        --net-giga-deep: #5B3FAF;
         --net-usl: #F2994A;
         --net-usl-soft: rgba(242,153,74,0.18);
         --net-usl-deep: #B85E1A;
-        --font-display: 'Sora', sans-serif;
+        --font-display: 'Fraunces', serif;
         --font-body: 'Inter', sans-serif;
         --font-mono: 'IBM Plex Mono', monospace;
     }
@@ -177,21 +168,7 @@
     .hidden { display: none !important; }
     img { max-width: 100%; display: block; }
 
-    .topbar { display: flex; flex-direction: column; gap: 12px; padding: 18px 20px 12px; position: relative; overflow: hidden; }
-    .topbar-row { display: flex; align-items: center; justify-content: space-between; }
-    .header-avatar-btn { width: 34px; height: 34px; border-radius: 50%; padding: 0; border: 1.5px solid var(--glass-border); background: var(--surface-raised); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(18,196,139,0.12); }
-    .header-avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .header-avatar-btn .avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--coin); background: var(--coin-soft); }
-    .topbar-wallet-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .wallet-chip { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 30px; background: var(--glass-bg-raised); border: 1px solid var(--glass-border); flex: 1; }
-    .wallet-chip-icon { font-size: 13px; line-height: 1; flex-shrink: 0; }
-    .wallet-chip-val { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .wallet-chip-unit { font-size: 9.5px; color: var(--ink-faint); letter-spacing: 0.05em; text-transform: uppercase; margin-left: auto; flex-shrink: 0; }
-    .wallet-chip-usdt { border-color: rgba(240,180,41,0.30); }
-    .wallet-chip-usdt .wallet-chip-val { color: var(--signal); }
-    .wallet-chip-nc { border-color: rgba(18,196,139,0.30); justify-content: flex-end; }
-    .wallet-chip-nc .wallet-chip-val { color: var(--coin); }
-    .wallet-chip-nc .wallet-chip-unit { margin-left: 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 8px; position: relative; overflow: hidden; }
     .topbar::before, .topbar::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; z-index: -1; }
     .topbar::before { width: 130px; height: 130px; background: radial-gradient(circle, var(--coin-soft), transparent 70%); top: -70px; left: -30px; }
     .topbar::after { width: 90px; height: 90px; background: radial-gradient(circle, var(--accent-soft), transparent 70%); top: -40px; right: 10%; }
@@ -206,9 +183,9 @@
        here specifically since the brief's header section calls for cyan,
        not mint). The NEW/TUBE two-tone name split is kept — still reads
        clearly, no animation involved there. */
-    .brand-mark { width: 30px; height: 30px; border-radius: 9px; position: relative; overflow: hidden; background: linear-gradient(155deg, #123024, #05100C); box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -3px 6px rgba(0,0,0,0.4), 0 0 10px var(--accent-soft); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--accent); text-shadow: 0 0 8px var(--accent-soft); }
-    .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: 0.2px; color: #FFFFFF; }
-    .brand-name .brand-tube { color: #39FF6A; text-shadow: 0 0 12px var(--accent-soft); }
+    .brand-mark { width: 30px; height: 30px; border-radius: 9px; position: relative; overflow: hidden; background: linear-gradient(155deg, #101A30, #05070D); box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -3px 6px rgba(0,0,0,0.4), 0 0 10px var(--accent-soft); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--accent); text-shadow: 0 0 8px var(--accent-soft); }
+    .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: 0.2px; }
+    .brand-name .brand-tube { color: var(--accent); text-shadow: 0 0 12px var(--accent-soft); }
     /* ⚠️ CHANGED (theme redesign) — header icon buttons used to have an
        infinite pulsing ring + a continuously rotating conic-gradient halo
        behind each one. Removed both — the brief asks for a minimal header
@@ -219,12 +196,7 @@
 
     /* ⚠️ CHANGED (theme redesign) — dark glassmorphism: semi-transparent
        background + blur + thin cyan border, per the brief. */
-    /* ⚠️ CHANGED (Emerald Professional v2 — contrast/polish pass) — the
-       flat single-color card from the first pass blended into the page.
-       Now a real green-tinted glass gradient + a clearly visible mint
-       border + a touch more blur, so every card visibly lifts off the
-       background instead of reading as one dark blob. */
-    .card { background: linear-gradient(165deg, rgba(30,92,66,0.5), rgba(11,26,20,0.58)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 16px; padding: 16px 18px; border: 1px solid var(--border); box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 22px rgba(0,0,0,0.35); }
+    .card { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 18px; padding: 16px 18px; border: 1px solid var(--glass-border); box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 28px rgba(0,0,0,0.45); }
     /* ══ SEASON 3 — button "face" refresh: a proper embossed cap (bright top
        edge, dark underside) instead of a flat gradient, so buttons read as
        physical pressable objects — coin/ticket-punch feel, matching the
@@ -232,13 +204,13 @@
        of linear ease, so it feels more tactile without adding duration. ══ */
     .btn { height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; font-size: 14px; border: none; width: 100%; position: relative; transition: transform 0.16s cubic-bezier(.34,1.4,.64,1), box-shadow 0.16s ease; }
     .btn-primary::before, .btn-money::before { content: ''; position: absolute; top: 1px; left: 6%; right: 6%; height: 40%; border-radius: 12px 12px 40% 40% / 12px 12px 100% 100%; background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0)); pointer-events: none; }
-    /* ⚠️ CHANGED (Emerald Professional redesign) — primary button: solid
-       emerald→leaf-green gradient, no more blue. */
-    .btn-primary { background: linear-gradient(135deg, #22C55E, #0B8F66); color: #05130D; border: 0.5px solid rgba(255,255,255,0.22); box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), inset 0 -3px 6px rgba(0,0,0,0.2), 0 3px 0 #076B4C, 0 8px 18px var(--accent-soft); }
-    .btn-primary:active { transform: translateY(3px) scale(0.99); box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 3px rgba(0,0,0,0.2), 0 0 0 #076B4C, 0 3px 8px var(--accent-soft); }
-    /* ⚠️ CHANGED (Emerald Professional redesign) — secondary button: flat
-       surface + emerald border, less glass/blur than before. */
-    .btn-outline { background: var(--surface-pop); backdrop-filter: none; -webkit-backdrop-filter: none; border: 1px solid var(--border-strong); color: var(--ink); }
+    /* ⚠️ CHANGED (theme redesign) — primary button: Electric Cyan → Blue
+       gradient with a subtle glow, per the brief. */
+    .btn-primary { background: linear-gradient(135deg, #00C8FF, #0072FF); color: #FFFFFF; border: 0.5px solid rgba(255,255,255,0.28); box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.25), 0 3px 0 #0059C8, 0 10px 22px var(--accent-soft); }
+    .btn-primary:active { transform: translateY(3px) scale(0.99); box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 3px rgba(0,0,0,0.25), 0 0 0 #0059C8, 0 4px 10px var(--accent-soft); }
+    /* ⚠️ CHANGED (theme redesign) — secondary button: dark glass + cyan
+       border, per the brief. */
+    .btn-outline { background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--glass-border); color: var(--ink); }
 
     /* ══════════════════════════════════════════════════════════
        HOME REDESIGN — replaces the old "stack of identical rounded
@@ -282,6 +254,8 @@
     .ticket-barcode { position: relative; z-index: 1; height: 20px; margin-top: 14px; border-radius: 3px; opacity: 0.55;
         background: repeating-linear-gradient(90deg, var(--ink-faint) 0 2px, transparent 2px 5px, var(--ink-faint) 5px 6px, transparent 6px 11px, var(--ink-faint) 11px 14px, transparent 14px 17px); }
     .mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    /* ── 777 lottery reel windows ── */
+    .lottery-reel { width: 62px; height: 62px; border-radius: 12px; background: var(--surface); border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.5); }
     .hero-top-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
     .hero-id-chip { font-size: 10.5px; color: var(--ink-faint); background: rgba(0,0,0,0.18); border: 0.5px solid var(--border); padding: 3px 8px; border-radius: 999px; }
     .hero-amount-row { display: flex; align-items: flex-end; gap: 9px; margin-top: 10px; position: relative; z-index: 1; }
@@ -305,12 +279,13 @@
     .action-icon-btn:active, .action-primary:active { transform: scale(0.95); }
 
     /* live activity ticker — a slim inline line, not a boxed card */
-
+    .live-ticker { display: flex; align-items: center; gap: 8px; margin: 12px 4px 0; overflow: hidden; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--money); flex-shrink: 0; box-shadow: 0 0 6px var(--money); animation: live-dot-pulse 1.8s ease-in-out infinite; }
     @keyframes live-dot-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
     /* platform stats — separate rounded boxes in a 3-col grid (Home) */
     .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .stat-strip-item { padding: 16px 6px 14px; text-align: center; border-radius: 16px; border: 0.5px solid var(--border); background: linear-gradient(165deg, rgba(28,86,63,0.5), rgba(11,26,20,0.55)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .stat-strip-item { padding: 16px 6px 14px; text-align: center; border-radius: 16px; border: 0.5px solid var(--border); background: linear-gradient(165deg, var(--surface-raised), var(--surface)); }
     .stat-strip-icon { width: 34px; height: 34px; margin: 0 auto; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: var(--coin-soft); }
     .stat-strip-num { font-family: var(--font-display); font-weight: 700; font-size: 19px; margin-top: 8px; }
     .stat-strip-label { font-size: 10px; color: var(--ink-faint); letter-spacing: 0.01em; margin-top: 2px; }
@@ -328,14 +303,14 @@
     .lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }
     .lb-rank-num { width: 22px; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 12px; color: var(--ink-faint); flex-shrink: 0; }
 
-    /* ── Home redesign v2 — dual CN/USDT box, rate line, inline promo box,
+    /* ── Home redesign v2 — dual NC/USDT box, rate line, inline promo box,
        milestone/leaderboard button row (matches the "Mining Buddies"
        reference screenshot's layout language, not a pixel copy) ── */
     .dual-balance-row { display: flex; gap: 10px; margin-top: 12px; position: relative; z-index: 1; }
     .dual-balance-box { flex: 1; border-radius: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 0.5px solid var(--border); }
     .hero-rate-line { margin-top: 10px; font-size: 11.5px; color: var(--ink-muted); text-align: center; position: relative; z-index: 1; }
-    .promo-inline-box { border-radius: 16px; padding: 14px 16px; background: linear-gradient(160deg, var(--gift-soft), rgba(11,26,20,0.5)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--gift-soft); }
-    .promo-inline-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--gift-soft); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .promo-inline-box { border-radius: 16px; padding: 14px 16px; background: linear-gradient(160deg, var(--gift-soft), var(--surface)); border: 1px solid var(--gift-soft); }
+    .promo-inline-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,176,32,0.14); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
     .milestone-lb-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12.5px; }
     .btn-outline:active { transform: translateY(1px); background: rgba(255,255,255,0.03); }
     .btn-signal { background: var(--signal); color: #04070D; }
@@ -354,9 +329,7 @@
        a lightning-flicker ring on the active tab. All GPU-cheap
        (transform/opacity/filter only), so it stays smooth in the
        Telegram WebView. ══════════════════════════════════════════ */
-    /* ⚠️ CHANGED (Emerald Professional redesign) — flatter dock: less blur,
-       far smaller ambient glow than before. */
-    .bottomnav { position: fixed; bottom: 14px; left: 0; right: 0; max-width: 440px; margin: 0 auto; background: linear-gradient(165deg, rgba(28,86,63,0.6), rgba(11,26,20,0.68)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-around; padding: 10px 6px; box-shadow: 0 4px 0 rgba(255,255,255,0.03) inset, 0 -1px 0 rgba(0,0,0,0.35) inset, 0 10px 24px rgba(0,0,0,0.5), 0 0 20px rgba(23,227,155,0.08); z-index: 40; }
+    .bottomnav { position: fixed; bottom: 14px; left: 0; right: 0; max-width: 440px; margin: 0 auto; background: var(--glass-bg-raised); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 22px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-around; padding: 10px 6px; box-shadow: 0 4px 0 rgba(255,255,255,0.03) inset, 0 -1px 0 rgba(0,0,0,0.4) inset, 0 14px 34px rgba(0,0,0,0.55), 0 0 26px var(--accent-soft); z-index: 40; }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--ink-faint); width: 56px; background: none; border: none; padding: 4px 0; }
     .nav-item.active { color: var(--accent); }
     .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.01em; }
@@ -378,75 +351,10 @@
        all running forever. Simplified to a static gradient button with a
        still glow, consistent with the rest of the nav bar after the same
        cleanup above. */
-    .nav-earn { position: relative; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--coin) 55%, var(--coin-deep)); display: flex; align-items: center; justify-content: center; margin-top: -28px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 8px rgba(0,0,0,0.25), 0 6px 16px var(--coin-soft), 0 0 16px rgba(18,196,139,0.28); color: #05130D; }
-    .nav-item.active .nav-earn { box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -4px 8px rgba(0,0,0,0.2), 0 8px 20px var(--coin-soft), 0 0 24px rgba(18,196,139,0.5); }
+    .nav-earn { position: relative; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--coin) 55%, var(--coin-deep)); display: flex; align-items: center; justify-content: center; margin-top: -28px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 8px rgba(0,0,0,0.25), 0 8px 20px var(--coin-soft), 0 0 24px rgba(0,245,212,0.3); color: #FFFFFF; }
+    .nav-item.active .nav-earn { box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -4px 8px rgba(0,0,0,0.2), 0 10px 26px var(--coin-soft), 0 0 36px rgba(0,245,212,0.55); }
 
-    .nav-earn-clover { font-size: 24px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
-    .stat-strip-sparkline { display: block; width: 100%; height: 22px; margin-top: 8px; opacity: 0.85; }
-    .stat-strip-sparkline path { stroke-dasharray: 140; stroke-dashoffset: 140; animation: ss-draw 1s ease 0.3s forwards; }
-    @keyframes ss-draw { to { stroke-dashoffset: 0; } }
-
-    /* ── Home: ambient decor + ledger copy + withdraw ripple (hubohu pass) ── */
-    /* ⚠️ REMOVED — .home-ambient-decor (a layer of 4 floating leaf/sparkle
-       emoji drifting behind the whole top of Home) sat on top of the
-       balance card's own glow pulse AND its nest-leaf float — three
-       separate ambient motions stacked in the same small viewport. Kept
-       @keyframes had-float since .bal-hero-nest .nest-leaf still uses it
-       (now capped to a few plays instead of forever), and dropped this
-       standalone layer entirely — the balance card carries enough of its
-       own "alive" motion on its own. */
-    @keyframes had-float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(8deg); } }
-    .ledger-copy-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--ink-faint); border-radius: 8px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; margin-left: 8px; transition: transform 0.12s ease; }
-    .ledger-copy-btn:active { transform: scale(0.88); color: var(--coin); }
-    .wd-btn-ripple { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; pointer-events: none; }
-    /* ⚠️ CHANGED — was `infinite`. A ripple that never stops pulsing on a
-       button that's just sitting there, right under a card that's also
-       glowing, reads as "broken/urgent" more than "premium" once you've
-       been looking at it for more than a few seconds. 3 plays (~6.6s) is
-       enough to draw the eye to the CTA on load, then it settles. */
-    .wd-btn-ripple .r { position: absolute; inset: 0; border: 1.5px solid rgba(255,255,255,0.55); border-radius: 50%; opacity: 0; animation: wd-ripple 2.2s ease-out 3; animation-fill-mode: both; }
-    .wd-btn-ripple .r2 { animation-delay: 0.55s; }
-    .wd-btn-ripple .r3 { animation-delay: 1.1s; }
-    .wd-btn-ripple .core { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 8px #FFFFFF; animation: wd-core-glow 1.6s ease-in-out 4; animation-fill-mode: both; }
-    @keyframes wd-ripple { 0% { transform: scale(0.2); opacity: 0.8; } 100% { transform: scale(1.8); opacity: 0; } }
-    @keyframes wd-core-glow { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
-    .stat-strip-item.pro { position: relative; }
-    /* ⚠️ CHANGED — was `infinite`. The sparkline already draws itself in
-       once on load (see ss-draw below) — a permanently-twinkling star on
-       top of that is redundant motion competing with the same card. Plays
-       twice then stops. */
-    .stat-strip-sparkle { position: absolute; top: 8px; right: 10px; font-size: 10px; opacity: 0; animation: sparkle-twinkle 2.4s ease-in-out 0.8s 2; animation-fill-mode: both; }
-    @keyframes sparkle-twinkle { 0%,100% { opacity: 0; transform: scale(0.7); } 50% { opacity: 0.9; transform: scale(1.1); } }
-    .notif-dot { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-
-    /* ── Home: eye-toggle, decorative nest graphic, Quick Actions row ── */
-    .bal-hero-nest { position: relative; width: 64px; height: 64px; flex-shrink: 0; margin-left: 4px; }
-    .bal-hero-nest .nest-clover { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); font-size: 34px; filter: drop-shadow(0 0 10px rgba(0,245,212,0.5)); animation: clover-pulse 2.6s ease-in-out infinite; }
-    /* ⚠️ CHANGED — was `infinite`. A tiny leaf that never stops drifting, next
-       to an already-pulsing clover and an already-glowing card, was one
-       looping animation too many in one small corner. Settles after 3
-       passes instead of forever — still catches the eye on load, doesn't
-       compete for attention indefinitely. */
-    .bal-hero-nest .nest-leaf { position: absolute; font-size: 13px; opacity: 0.55; animation: had-float 5s ease-in-out 3; animation-fill-mode: both; }
-    .bal-hero-nest .n1 { top: -2px; left: 2px; }
-    .bal-hero-nest .n2 { bottom: 2px; right: -2px; animation-delay: 1.2s; }
-    /* ⚠️ CHANGED — quick-action cards get their own solid glass panel
-       (instead of a bare icon floating on the page background), and the
-       icon fill is now fully OPAQUE (solid hex-to-hex radial gradient,
-       no low-alpha color mixing with whatever's behind it). Previously
-       the icon backgrounds used a translucent --qa-hue-soft color, which
-       let the page background (incl. the new bg photo's bright spots)
-       bleed through and read as a washed-out "white" circle — this fixes
-       that at the root instead of just visually compensating for it. */
-    .quick-actions-row { display: flex; justify-content: space-between; gap: 6px; }
-    .qa2-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; padding: 12px 4px 12px; border-radius: 16px; background: linear-gradient(165deg, rgba(28,86,63,0.5), rgba(11,26,20,0.55)); border: 1px solid var(--border); transition: transform 0.12s ease, border-color 0.15s ease; }
-    .qa2-item:active { transform: scale(0.93); }
-    .qa2-icon { position: relative; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 21px; border: 2px solid var(--qa-hue, var(--coin)); background: radial-gradient(circle at 32% 28%, var(--qa-fill-a, #16202E), var(--qa-fill-b, #0A0F1A) 78%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.14), inset 0 -3px 6px rgba(0,0,0,0.45), 0 0 12px var(--qa-hue-soft, rgba(23,227,155,0.22)); animation: qa-icon-pulse 2.8s ease-in-out infinite; }
-    @keyframes qa-icon-pulse { 0%,100% { box-shadow: inset 0 1px 1px rgba(255,255,255,0.14), inset 0 -3px 6px rgba(0,0,0,0.45), 0 0 9px var(--qa-hue-soft, rgba(0,245,212,0.18)); transform: scale(1); } 50% { box-shadow: inset 0 1px 1px rgba(255,255,255,0.14), inset 0 -3px 6px rgba(0,0,0,0.45), 0 0 18px var(--qa-hue-soft, rgba(0,245,212,0.34)); transform: scale(1.035); } }
-    .qa2-badge { position: absolute; top: -2px; right: -2px; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); color: #06210F; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
-    .qa2-label { font-size: 10.5px; line-height: 1.25; text-align: center; color: var(--ink); font-weight: 600; letter-spacing: 0.01em; }
     #toast-host { position: fixed; top: 14px; left: 0; right: 0; max-width: 430px; margin: 0 auto; z-index: 200; pointer-events: none; padding: 0 16px; }
-    #tab-content { position: relative; }
     .toast { background: var(--surface-pop); border: 0.5px solid var(--border-strong); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: toast-in 0.25s ease; }
     .toast.success { border-color: rgba(93,202,165,0.4); }
     .toast.error { border-color: rgba(255,92,122,0.4); }
@@ -466,19 +374,8 @@
        ══════════════════════════════════════════════════════════ */
 
     /* ── splash screen ── */
-    #splash { position: fixed; inset: 0; background: #05070D; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; transition: opacity 0.5s ease, transform 0.5s ease; }
+    #splash { position: fixed; inset: 0; background: radial-gradient(circle at 50% 38%, #14200F 0%, var(--bg) 68%); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, transform 0.5s ease; }
     #splash.out { opacity: 0; transform: scale(1.06); pointer-events: none; }
-    /* ⚠️ CHANGED — the old full-bleed <video> background pointed at
-       assets/splash.mp4, a file that was never actually part of this repo,
-       so the splash rendered as flat black behind the text. Replaced with a
-       pure CSS/animation atmosphere (glow + floating clover leaves) that
-       can never 404: a lush dark-green radial glow, pulsing softly, with a
-       bottom vignette for text contrast — reusing the existing (previously
-       unused) .splash-particles rising-dot layer as floating "clover dust". */
-    .splash-bg-glow { position: absolute; inset: -12%; z-index: 0; background: radial-gradient(circle at 50% 36%, rgba(0,245,212,0.20) 0%, rgba(6,26,16,0.55) 38%, #05070D 74%); animation: bgglow-pulse 5s ease-in-out infinite; pointer-events: none; }
-    @keyframes bgglow-pulse { 0%,100% { opacity: 0.85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.045); } }
-    .splash-video-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, rgba(5,7,13,0.15) 0%, rgba(5,7,13,0.05) 45%, rgba(5,7,13,0.65) 78%, rgba(5,7,13,0.95) 100%); pointer-events: none; }
-    .splash-overlay { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; padding-bottom: 48px; width: 100%; }
     /* orbiting dotted-ring loader removed — see the tune-dial rules above instead */
     .splash-loadbar-wrap { width: 230px; margin: 34px auto 4px; z-index: 1; position: relative; opacity: 0; animation: fade-up 0.5s ease 1.1s forwards; }
     .splash-loadbar-label { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.1em; color: var(--ink-faint); margin-bottom: 7px; }
@@ -486,22 +383,15 @@
     .splash-loadbar-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
     .splash-loadbar-fill { height: 100%; border-radius: 3px; width: 0%; background: linear-gradient(90deg, var(--coin-deep), var(--coin)); box-shadow: 0 0 12px var(--coin-soft); animation: splash-load-fill 2.1s cubic-bezier(.3,.7,.4,1) 0.4s 1 forwards; }
     @keyframes splash-load-fill { 0% { width: 0%; } 100% { width: 92%; } }
-    /* ⚠️ CHANGED — this row now depicts the Clover → Coin → Reward flow from
-       the reference design instead of the old Watch/Earn/Withdraw trio;
-       gap tightened to fit the two arrow glyphs between the three icons. */
-    .splash-features { display: flex; align-items: flex-start; gap: 14px; margin-top: 30px; z-index: 1; opacity: 0; animation: fade-up 0.5s ease 1.3s forwards; }
+    .splash-features { display: flex; gap: 30px; margin-top: 30px; z-index: 1; opacity: 0; animation: fade-up 0.5s ease 1.3s forwards; }
     .splash-feature { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .splash-feature-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; border: 1px solid var(--coin-soft); background: radial-gradient(circle, var(--coin-soft), transparent 75%); color: var(--coin); filter: drop-shadow(0 0 7px var(--coin-soft)); }
+    .splash-feature-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--coin-soft); background: radial-gradient(circle, var(--coin-soft), transparent 75%); color: var(--coin); filter: drop-shadow(0 0 7px var(--coin-soft)); }
     .splash-feature-label { font-size: 10.5px; letter-spacing: 0.04em; color: var(--ink-muted); text-align: center; line-height: 1.3; }
     .splash-feature-label b { display: block; color: var(--coin); font-weight: 600; }
-    .splash-flow-arrow { display: flex; align-items: center; justify-content: center; height: 46px; font-size: 15px; color: var(--ink-faint); }
     .splash-icon-stage { position: relative; display: flex; align-items: center; justify-content: center; z-index: 1; }
     .splash-badge { position: relative; width: 118px; height: 118px; border-radius: 32px; display: flex; align-items: center; justify-content: center; background: linear-gradient(155deg, #1C2416, #05070D); box-shadow: inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -8px 16px rgba(0,0,0,0.5), 0 26px 56px rgba(0,0,0,0.55); animation: splash-pop 0.7s cubic-bezier(.34,1.56,.64,1); z-index: 2; }
     .splash-badge-inner { width: 100%; height: 100%; border-radius: 32px; display: flex; align-items: center; justify-content: center; background: linear-gradient(155deg, var(--coin-soft), rgba(0,245,212,0.02) 65%); color: var(--coin); position: relative; overflow: hidden; }
-    /* ⚠️ CHANGED — the badge now holds an animated glowing clover emoji
-       (was a generic "play" triangle from the old video-app theme). */
-    .splash-badge-inner .splash-clover { font-size: 52px; filter: drop-shadow(0 0 14px var(--coin-soft)); position: relative; z-index: 1; animation: clover-pulse 2.4s ease-in-out infinite; }
-    @keyframes clover-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .splash-badge-inner .splash-play { filter: drop-shadow(0 0 14px var(--coin-soft)); position: relative; z-index: 1; }
     .splash-badge-sheen { position: absolute; inset: -40% -10%; background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.14) 50%, transparent 60%); transform: translateX(-120%); animation: splash-sheen-sweep 2.4s ease-in-out 0.4s infinite; }
     @keyframes splash-sheen-sweep { 0% { transform: translateX(-130%); } 45%,100% { transform: translateX(130%); } }
     /* one-shot "signal lock" flash, timed to fire right as the loading bar settles */
@@ -526,19 +416,6 @@
     @keyframes ripple-expand { 0% { transform: translate(-50%,-50%) scale(0.2); opacity: 0; border-color: rgba(0,245,212,0.9); } 14% { opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(5.2); opacity: 0; border-color: rgba(0,245,212,0); } }
 
     /* ── generic entrance utilities ── */
-    /* ── Home: personalized welcome banner (professional-redesign pass) ── */
-
-    /* ⚠️ CHANGED — was `infinite`. 3 leaves drifting forever at the top of
-       Home, right above the balance card's own glow, was extra ambient
-       motion the eye had to keep tuning out. 2 gentle passes on load, then
-       still. */
-    .stat-strip-item.pro { transition: transform 0.15s ease; }
-    .stat-strip-item.pro:active { transform: scale(0.95); }
-    .stat-strip-item.pro .stat-strip-icon { animation: ss-icon-pop 0.5s cubic-bezier(.34,1.56,.64,1) both; }
-    .stat-strip-item.pro:nth-child(1) .stat-strip-icon { animation-delay: 0.05s; }
-    .stat-strip-item.pro:nth-child(2) .stat-strip-icon { animation-delay: 0.15s; }
-    .stat-strip-item.pro:nth-child(3) .stat-strip-icon { animation-delay: 0.25s; }
-    @keyframes ss-icon-pop { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
     .anim-in { animation: rise-in 0.45s cubic-bezier(.22,.9,.32,1) both; }
     .anim-in-2 { animation: rise-in 0.45s cubic-bezier(.22,.9,.32,1) 0.06s both; }
     .anim-in-3 { animation: rise-in 0.45s cubic-bezier(.22,.9,.32,1) 0.12s both; }
@@ -555,13 +432,44 @@
     .count-pop { display: inline-block; animation: count-pop 0.35s ease; }
     @keyframes count-pop { 0% { transform: scale(1.18); color: var(--coin); } 100% { transform: scale(1); } }
 
-    /* ⚠️ REMOVED — video-player VFX block (vid-neon-card, floating lootbox,
-       vp-close-glow, vp-thumb) deleted along with the video system. */
+    /* ── "Earned this session" card on the video player. ⚠️ UPDATED (this
+       update) — used to be hardcoded purple/pink (#1D0E33 bg, #FF6EC7 text)
+       which didn't match anything else in the app. Recolored onto the same
+       dark surface + --video-hue accent used everywhere else video-related
+       (floating lootbox ring, etc.), plus a slow rotating glow ring behind
+       the number and a lightning sweep across the card for extra VFX. ── */
+    .vid-neon-card { background: linear-gradient(165deg, var(--surface-pop), var(--surface)); border: 1px solid rgba(0,200,255,0.35); border-radius: 18px; padding: 16px; position: relative; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,200,255,0.08) inset, 0 10px 26px rgba(0,200,255,0.15); }
+    .vid-neon-card::before { content: ''; position: absolute; inset: -60%; background: conic-gradient(from 0deg, transparent, rgba(0,200,255,0.22), transparent 35%); animation: vid-neon-spin 5s linear infinite; pointer-events: none; }
+    .vid-neon-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.10) 48%, rgba(255,190,170,0.22) 50%, rgba(255,255,255,0.10) 52%, transparent 65%); background-size: 260% 260%; animation: nav-lightning 3.4s ease-in-out infinite; pointer-events: none; }
+    @keyframes vid-neon-spin { to { transform: rotate(360deg); } }
+    .vid-neon-sub { font-size: 11px; color: var(--ink-muted); margin-top: 8px; position: relative; z-index: 1; }
+    #floating-lootbox { transition: transform 0.2s ease; animation: lootbox-bob 2.4s ease-in-out infinite; }
+    #floating-lootbox:active { transform: scale(0.9); }
+    @keyframes lootbox-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    #floating-lootbox.claimable { animation: lootbox-bob 2.4s ease-in-out infinite, lootbox-pulse 1.6s ease-in-out infinite; }
+    @keyframes lootbox-pulse { 0%,100% { box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 0 0 rgba(0,245,212,0.45); } 50% { box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 0 8px rgba(0,245,212,0); } }
+    #lb-coin-icon { transition: transform 0.3s cubic-bezier(.34,1.56,.64,1); }
+    #floating-lootbox.claimable #lb-coin-icon { animation: coin-flip 1.8s ease-in-out infinite; }
+    .lb-claim-hint { position: fixed; z-index: 51; display: flex; align-items: center; gap: 6px; pointer-events: none; animation: lb-hint-bob 1.4s ease-in-out infinite; }
+    .lb-claim-hint-bubble { background: linear-gradient(160deg, var(--signal), var(--coin) 70%); color: #06120A; font-weight: 700; font-size: 11.5px; padding: 5px 10px; border-radius: 999px; white-space: nowrap; box-shadow: 0 6px 14px rgba(0,0,0,0.35); }
+    .lb-claim-hint-arrow { font-size: 20px; transform: rotate(90deg); filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); }
+    @keyframes lb-hint-bob { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+    @keyframes coin-flip { 0%,100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.08) rotate(5deg); } }
+    .lb-gain-float { position: fixed; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--coin); z-index: 51; pointer-events: none; animation: gain-float 1.1s ease-out forwards; }
+
+    /* ── video-player-only VFX: glowing close button + "up next" thumbnail
+       hover glow, both keyed off --video-hue to match the earnings card. ── */
+    .vp-close-glow { box-shadow: 0 0 0 1px rgba(0,200,255,0.3), 0 0 14px rgba(0,200,255,0.35); animation: vp-close-pulse 2.2s ease-in-out infinite; }
+    @keyframes vp-close-pulse { 0%,100% { box-shadow: 0 0 0 1px rgba(0,200,255,0.25), 0 0 10px rgba(0,200,255,0.25); } 50% { box-shadow: 0 0 0 1px rgba(0,200,255,0.45), 0 0 18px rgba(0,200,255,0.5); } }
+    .vp-thumb { position: relative; border-radius: 14px; overflow: hidden; transition: box-shadow 0.2s ease, transform 0.15s ease; }
+    .vp-thumb:active { transform: scale(0.97); box-shadow: 0 0 0 2px var(--video-hue), 0 0 16px rgba(0,200,255,0.5); }
+    @keyframes gain-float { 0% { opacity: 0; transform: translateY(0) scale(0.8); } 20% { opacity: 1; transform: translateY(-8px) scale(1); } 100% { opacity: 0; transform: translateY(-38px) scale(1); } }
 
     /* ── buttons: tactile press feedback ── */
-    .btn, .nav-item, .icon-btn { transition: transform 0.12s ease, opacity 0.12s ease; }
+    .btn, .nav-item, .icon-btn, .video-thumb { transition: transform 0.12s ease, opacity 0.12s ease; }
     .btn:active:not(:disabled) { transform: scale(0.96); }
     .nav-item:active, .icon-btn:active { transform: scale(0.88); }
+    .video-thumb:active { transform: scale(0.97); }
     /* nav-earn's pop/scale is now driven by the nav-earn-float keyframes
        above (bakes in a 1.02 scale mid-bob) plus the active box-shadow glow,
        so no separate static transform rule is needed here anymore. */
@@ -652,8 +560,7 @@
     .task-card-big { display: flex; align-items: center; gap: 14px; padding: 16px; }
     .tc-icon { width: 52px; height: 52px; flex-shrink: 0; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: linear-gradient(155deg, var(--coin-soft), var(--accent-soft)); border: 1px solid var(--border); }
     .tc-title { font-weight: 600; font-size: 14.5px; line-height: 1.35; margin-bottom: 10px; }
-    .tc-go-btn { width: auto; height: 34px; padding: 0 16px; font-size: 12.5px; display: inline-flex; gap: 6px; background: linear-gradient(160deg, var(--coin), var(--coin-deep)); border: 0.5px solid rgba(255,255,255,0.25); box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 6px 14px var(--coin-soft); transition: transform 0.12s ease; }
-    .tc-go-btn:active { transform: scale(0.93); }
+    .tc-go-btn { width: auto; height: 34px; padding: 0 16px; font-size: 12.5px; display: inline-flex; gap: 6px; background: linear-gradient(160deg, var(--coin), var(--coin-deep)); border: 0.5px solid rgba(255,255,255,0.25); box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 6px 14px var(--coin-soft); }
     .tc-reward-badge { flex-shrink: 0; text-align: center; padding: 10px 12px; border-radius: 14px; background: linear-gradient(160deg, var(--surface-pop), var(--surface-raised)); border: 1px solid var(--border-strong); }
     .tc-reward-amount { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--coin); line-height: 1; }
     .tc-reward-label { font-size: 9.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
@@ -689,13 +596,13 @@
     .splash-glow { position: absolute; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,212,0.18), transparent 72%); animation: splash-glow-pulse 2.6s ease-in-out infinite; z-index: 0; }
     @keyframes splash-glow-pulse { 0%,100% { opacity: 0.4; transform: scale(0.92); } 50% { opacity: 0.7; transform: scale(1.1); } }
     .splash-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-    .splash-particles span { position: absolute; bottom: -10px; width: 5px; height: 5px; border-radius: 50%; background: #6BE38A; opacity: 0.75; box-shadow: 0 0 8px rgba(107,227,138,0.7); animation: splash-particle-rise 3.4s ease-in infinite; }
+    .splash-particles span { position: absolute; bottom: -10px; width: 5px; height: 5px; border-radius: 50%; background: var(--coin); opacity: 0.75; box-shadow: 0 0 8px rgba(0,245,212,0.7); animation: splash-particle-rise 3.4s ease-in infinite; }
     .splash-particles span:nth-child(1) { left: 14%; animation-delay: 0s; }
-    .splash-particles span:nth-child(2) { left: 30%; animation-delay: 0.5s; background: var(--coin); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
+    .splash-particles span:nth-child(2) { left: 30%; animation-delay: 0.5s; background: var(--signal); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
     .splash-particles span:nth-child(3) { left: 48%; animation-delay: 1.05s; }
-    .splash-particles span:nth-child(4) { left: 64%; animation-delay: 1.65s; background: var(--coin); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
+    .splash-particles span:nth-child(4) { left: 64%; animation-delay: 1.65s; background: var(--signal); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
     .splash-particles span:nth-child(5) { left: 80%; animation-delay: 0.85s; }
-    .splash-particles span:nth-child(6) { left: 22%; animation-delay: 2.15s; background: var(--coin); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
+    .splash-particles span:nth-child(6) { left: 22%; animation-delay: 2.15s; background: var(--signal); box-shadow: 0 0 8px rgba(0,245,212,0.7); }
     @keyframes splash-particle-rise { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { opacity: 0.85; } 100% { transform: translateY(-340px) scale(1.1); opacity: 0; } }
     .splash-name, .splash-tagline, .splash-badge { position: relative; z-index: 1; }
 
@@ -729,88 +636,40 @@
     .congrats-hint { position: relative; z-index: 1; font-size: 10.5px; color: var(--ink-faint); margin-top: 14px; opacity: 0; animation: fade-up 0.5s ease 0.6s forwards; }
 
     /* ══════════════════════════════════════════════════════════
-       AMBIENT BACKGROUND — ⚠️ CHANGED again: re-animated per the new
-       "Background Animation UX" spec (5 layers: Gradient Flow, Floating
-       Clovers, Particle Dust, Glow Orbs, Light Sweep). The earlier static
-       revert above this comment no longer applies — this explicitly asks
-       for motion again, just SLOW/VERY SLOW and low-opacity so it reads
-       as ambient texture, not a distraction. Kept the same #galaxy-bg id
-       (so nothing else has to change) — the extra layers (#amb-clovers,
-       #amb-dust, orbs, sweep) are appended right after it in the body.
+       BACKGROUND — ⚠️ CHANGED (theme redesign): the old galaxy-bg was a
+       fully animated system (drifting nebula blobs, two scrolling star
+       layers, twinkling dots). The new brief explicitly calls for a
+       COMPLETELY STATIC background — no moving particles, no animated
+       stars, no floating objects — just a deep midnight base with a
+       subtle, still cyan/violet glow. Kept the same #galaxy-bg id (so
+       nothing else has to change) but it's now two fixed radial
+       gradients, nothing more. The old JS star/twinkle generator below
+       is now a no-op for the same reason (kept, emptied, rather than
+       deleted, in case animated stars are ever wanted back).
        ══════════════════════════════════════════════════════════ */
-    /* Layer 1 — Gradient Flow: the base nebula blobs slowly drift position.
-       ⚠️ CHANGED — the uploaded clover-leaf photo is now the base layer,
-       with a dark tint gradient sitting directly on top of it so the photo
-       reads as a muted, darkened texture rather than a bright/washed-out
-       "lit" background — keeps every foreground card/button legible on
-       every tab, since this element is fixed + z-index:-2 behind the
-       whole app (nothing else in the structure changes). */
     #galaxy-bg {
-        position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden;
-        background-color: var(--bg);
-        background-image:
+        position: fixed; inset: 0; z-index: -2; pointer-events: none;
+        background:
             radial-gradient(ellipse 70% 50% at 15% -10%, var(--bg-nebula-1), transparent 60%),
             radial-gradient(ellipse 70% 50% at 90% 110%, var(--bg-nebula-2), transparent 60%),
-            linear-gradient(180deg, rgba(5,9,20,0.62), rgba(5,9,20,0.68) 55%, rgba(5,9,20,0.78)),
-            url('/assets/bg-clover.jpg');
-        background-size: 140% 140%, 140% 140%, cover, cover;
-        background-position: 0% 0%, 0% 0%, center center, center center;
-        background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
-        animation: amb-gradient-flow 26s ease-in-out infinite;
+            var(--bg);
     }
-    @keyframes amb-gradient-flow { 0%,100% { background-position: 0% 0%, 0% 0%, center center, center center; } 50% { background-position: 10% 6%, -8% -6%, center center, center center; } }
-
-    /* Layer 4 — Glow Orbs: 3 soft blurred circles drifting very slowly.
-       ⚠️ CHANGED — opacity dialed back (0.85 → 0.5) now that the clover
-       photo sits underneath; keeps the scene from reading "lit up" /
-       washed-out on top of the new background texture. */
-    .amb-orb { position: absolute; border-radius: 50%; filter: blur(6px); opacity: 0.5; }
-    .amb-orb.o1 { width: 220px; height: 220px; left: -10%; top: -4%; background: radial-gradient(circle, rgba(61,255,122,0.30), transparent 70%); animation: amb-orb-drift-1 32s ease-in-out infinite; }
-    .amb-orb.o2 { width: 190px; height: 190px; right: -8%; top: 30%; background: radial-gradient(circle, rgba(0,245,212,0.26), transparent 70%); animation: amb-orb-drift-2 38s ease-in-out infinite; }
-    .amb-orb.o3 { width: 210px; height: 210px; left: -6%; bottom: -6%; background: radial-gradient(circle, rgba(61,255,122,0.28), transparent 70%); animation: amb-orb-drift-3 44s ease-in-out infinite; }
-    @keyframes amb-orb-drift-1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px,60px); } }
-    @keyframes amb-orb-drift-2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-50px,30px); } }
-    @keyframes amb-orb-drift-3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-45px); } }
-
-    /* Layer 5 — Light Sweep: a faint diagonal light passes occasionally */
-    .amb-sweep { position: absolute; top: -20%; left: -30%; width: 60%; height: 140%; background: linear-gradient(115deg, transparent 40%, rgba(61,255,122,0.10) 48%, rgba(61,255,122,0.20) 50%, rgba(61,255,122,0.10) 52%, transparent 60%); transform: translateX(-120%); animation: amb-sweep-pass 11s ease-in-out infinite; }
-    @keyframes amb-sweep-pass { 0%,72% { transform: translateX(-120%); } 88% { transform: translateX(220%); } 100% { transform: translateX(220%); } }
-
-    /* Layer 2 — Floating Clovers: leaves drift upward very slowly, looping */
-    #amb-clovers { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-    #amb-clovers span { position: absolute; bottom: -40px; opacity: 0; animation: amb-clover-float linear infinite; }
-    @keyframes amb-clover-float { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 8% { opacity: 0.28; } 92% { opacity: 0.2; } 100% { transform: translateY(-115vh) rotate(50deg); opacity: 0; } }
-
-    /* Layer 3 — Particle Dust: tiny glowing dots float and fade */
-    #amb-dust { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-    #amb-dust span { position: absolute; bottom: -6px; width: 3px; height: 3px; border-radius: 50%; background: var(--coin); box-shadow: 0 0 5px var(--coin); opacity: 0; animation: amb-dust-float linear infinite; }
-    @keyframes amb-dust-float { 0% { transform: translateY(0); opacity: 0; } 12% { opacity: 0.6; } 88% { opacity: 0.4; } 100% { transform: translateY(-105vh); opacity: 0; } }
 
     /* ══════════════════════════════════════════════════════════
        HOME v2 — glass hero card, hexagon badge, quick-link grid,
        and a bottom quick-action row (visual layer only — every id
        used by JS below is preserved so no function is touched).
        ══════════════════════════════════════════════════════════ */
-    /* ⚠️ CHANGED (Emerald Professional v2) — brighter tinted glass fill
-       (was flat --surface-raised, blended into the page) + a subtle
-       animated light sheen sweeping across the card every few seconds —
-       the bit of "alive" premium motion that was missing. */
-    .bal-hero { position: relative; border-radius: 20px; padding: 20px 18px 18px; overflow: hidden; background: radial-gradient(ellipse 120% 90% at 100% -10%, var(--signal-soft), transparent 60%), linear-gradient(165deg, rgba(30,92,66,0.55), rgba(11,26,20,0.62)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--glass-border-violet); box-shadow: 0 0 0 1px rgba(255,197,61,0.06), 0 14px 30px rgba(0,0,0,0.35); }
-    .bal-hero::after {
-        content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-        background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.08) 55%, transparent);
-        transform: skewX(-18deg); animation: hero-sheen 5.5s ease-in-out infinite; pointer-events: none; z-index: 2;
-    }
-    @keyframes hero-sheen { 0%, 25% { left: -60%; } 60%, 100% { left: 130%; } }
+    .bal-hero { position: relative; border-radius: 22px; padding: 20px 18px 18px; overflow: hidden; background: radial-gradient(ellipse 120% 90% at 100% -10%, var(--signal-soft), transparent 60%), var(--glass-bg-raised); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--glass-border-violet); box-shadow: 0 0 0 1px rgba(124,60,255,0.06), 0 20px 40px rgba(0,0,0,0.35); }
     .bal-hero-glow { position: absolute; top: -60px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, var(--coin-soft), transparent 70%); pointer-events: none; z-index: 0; }
     .bal-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
     .bal-hero-badge { width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; background: linear-gradient(155deg, var(--coin-soft), var(--surface-pop) 75%); border: 1px solid var(--coin-soft); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--coin); box-shadow: 0 0 18px var(--coin-soft), inset 0 1px 1px rgba(255,255,255,0.15); }
     .bal-hero-chip { font-size: 10.5px; color: var(--ink-faint); background: rgba(0,0,0,0.18); border: 0.5px solid var(--border); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
-    .bal-hero-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 30px; color: #39FF6A; margin-top: 2px; }
+    .bal-hero-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 30px; color: var(--coin); margin-top: 2px; }
     .bal-hero-ledger-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; position: relative; z-index: 1; }
-    .bal-hero-ledger { font-size: 10.5px; color: #91A69D; background: rgba(0,0,0,0.18); border: 0.5px solid var(--border); padding: 4px 10px; border-radius: 999px; }
-    .bal-hero-ledger b { color: #FFD43B; font-weight: 600; font-family: var(--font-mono); }
-    .bal-hero-rate { margin-top: 8px; font-size: 11px; color: #B8C5BF; position: relative; z-index: 1; }
+    .bal-hero-ledger { font-size: 10.5px; color: var(--ink-faint); background: rgba(0,0,0,0.18); border: 0.5px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+    .bal-hero-ledger b { color: var(--ink-muted); font-weight: 600; font-family: var(--font-mono); }
+    .bal-hero-rate { margin-top: 8px; font-size: 11px; color: var(--ink-faint); position: relative; z-index: 1; }
 
     /* quick-link 2x2 grid — Weekly Contest / Leaderboard / Official / Pay */
     .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -829,113 +688,55 @@
     .qa-label { font-size: 10.5px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.2; }
     .qa-sub { font-size: 9px; color: var(--ink-faint); text-align: center; }
     .qa-soon-badge { position: absolute; top: -4px; right: 2px; background: var(--pending); color: var(--pending-ink); font-size: 7.5px; font-weight: 700; letter-spacing: 0.02em; padding: 2px 5px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-
-    /* ══════════════════════════════════════════════════════════
-       WITHDRAW 2.0 — brand new step-based flow, violet "wallet"
-       accent, radio-card method picker, quick-% chip row, and a
-       dedicated confirm + success screen instead of one long form.
-       ══════════════════════════════════════════════════════════ */
-    .wd2-steps { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; position: relative; z-index: 1; }
-    .wd2-step-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--font-display); background: var(--surface-raised); border: 1.5px solid var(--border-strong); color: var(--ink-faint); flex-shrink: 0; transition: all 0.25s ease; }
-    .wd2-step-dot.done { background: var(--signal); border-color: var(--signal); color: #fff; }
-    .wd2-step-dot.active { background: radial-gradient(circle, var(--signal-soft), var(--surface-raised) 75%); border-color: var(--signal); color: var(--ink); box-shadow: 0 0 12px var(--signal-soft); }
-    .wd2-step-label { font-size: 11px; color: var(--ink-faint); font-weight: 600; }
-    .wd2-step-label.active { color: var(--ink); }
-    .wd2-step-line { flex: 1; height: 1.5px; background: var(--border-strong); }
-    .wd2-step-line.done { background: var(--signal); }
-
-    .wd2-balance-card { position: relative; overflow: hidden; border-radius: 18px; padding: 16px 18px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(124,60,255,0.16), var(--glass-bg) 70%); border: 1px solid var(--glass-border-violet); }
-    .wd2-balance-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
-    .wd2-balance-num { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin-top: 3px; color: var(--ink); }
-    .wd2-balance-usd { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
-
-    .wd2-section-label { font-size: 11.5px; font-weight: 600; color: var(--ink-muted); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .wd2-method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .wd2-method-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 12px; border-radius: 14px; border: 1.5px solid var(--border-strong); background: var(--surface-raised); text-align: left; position: relative; transition: all 0.18s ease; }
-    .wd2-method-card.selected { border-color: var(--signal); background: linear-gradient(155deg, var(--signal-soft), var(--surface-raised) 75%); box-shadow: 0 0 14px var(--signal-soft); }
-    .wd2-method-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: var(--signal-soft); color: var(--signal); }
-    .wd2-method-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
-    .wd2-method-radio { position: absolute; top: 10px; right: 10px; width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--border-strong); }
-    .wd2-method-card.selected .wd2-method-radio { border-color: var(--signal); background: var(--signal); box-shadow: inset 0 0 0 3px var(--surface-raised); }
-
-    .wd2-chip-row { display: flex; gap: 7px; margin-top: 8px; }
-    .wd2-chip { flex: 1; padding: 7px 0; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface-raised); color: var(--ink-muted); font-size: 11.5px; font-weight: 600; text-align: center; }
-    .wd2-chip:active { transform: scale(0.95); }
-    .wd2-chip.max { color: var(--signal); border-color: var(--signal-soft); }
-
-    .wd2-receive-card { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--money-soft); border: 1px solid rgba(0,245,212,0.28); }
-    .wd2-receive-label { font-size: 12px; color: var(--ink-muted); }
-    .wd2-receive-num { font-family: var(--font-mono); font-size: 19px; font-weight: 700; color: var(--money); }
-
-    .wd2-req-card { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--surface-raised); border: 1px solid var(--border); }
-    .wd2-req-line { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 4px 0; }
-
-    .wd2-summary-card { border-radius: 16px; background: var(--surface-raised); border: 1px solid var(--border); padding: 4px 16px; margin-bottom: 14px; }
-    .wd2-summary-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; font-size: 13px; }
-    .wd2-summary-row + .wd2-summary-row { border-top: 1px solid var(--border); }
-    .wd2-summary-row .lbl { color: var(--ink-faint); }
-    .wd2-summary-row .val { color: var(--ink); font-weight: 600; font-family: var(--font-mono); text-align: right; }
-    .wd2-summary-net { border-radius: 16px; background: var(--money-soft); border: 1px solid rgba(0,245,212,0.28); padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .wd2-summary-net .lbl { font-size: 12.5px; color: var(--ink-muted); }
-    .wd2-summary-net .val { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--money); }
-
-    .wd2-success-badge { width: 72px; height: 72px; border-radius: 50%; margin: 6px auto 16px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, var(--money-soft), transparent 72%); border: 2px solid var(--money); animation: wd2-pop 0.45s cubic-bezier(.22,.9,.32,1); }
-    @keyframes wd2-pop { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
 <body>
 
 <div id="galaxy-bg">
-    <div class="amb-orb o1"></div>
-    <div class="amb-orb o2"></div>
-    <div class="amb-orb o3"></div>
-    <div class="amb-sweep"></div>
+    <div class="galaxy-nebula n1"></div>
+    <div class="galaxy-nebula n2"></div>
+    <div class="galaxy-nebula n3"></div>
+    <div class="star-layer far" id="star-layer-far"></div>
+    <div class="star-layer near" id="star-layer-near"></div>
 </div>
-<div id="amb-clovers"></div>
-<div id="amb-dust"></div>
 <div id="grain-overlay"></div>
 
 <div id="splash">
-    <div class="splash-bg-glow"></div>
+    <div class="splash-glow"></div>
     <div class="splash-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-    <div class="splash-video-scrim"></div>
-    <div class="splash-overlay">
-        <div class="splash-icon-stage">
-            <div class="splash-beam"></div>
-            <div class="splash-badge">
-                <div class="splash-badge-inner">
-                    <div class="splash-badge-sheen"></div>
-                    <span class="splash-clover">🍀</span>
-                </div>
-            </div>
-            <div class="splash-ripple-pool">
-                <div class="splash-ripple"></div>
-                <div class="splash-ripple r2"></div>
-                <div class="splash-ripple r3"></div>
-                <div class="core"></div>
+    <div class="splash-icon-stage">
+        <div class="splash-beam"></div>
+        <div class="splash-badge">
+            <div class="splash-badge-inner">
+                <div class="splash-badge-sheen"></div>
+                <svg class="splash-play" width="38" height="38" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
             </div>
         </div>
-        <div class="splash-name">CLOVER<span class="accent">NEST</span></div>
-        <div class="splash-tagline mono-num" style="letter-spacing:0.04em;">COLLECT · EARN · GROW</div>
-        <div class="splash-loadbar-wrap">
-            <div class="splash-loadbar-label"><span>COLLECTING CLOVERS</span><span class="pct">92%</span></div>
-            <div class="splash-loadbar-track"><div class="splash-loadbar-fill"></div></div>
+        <div class="splash-ripple-pool">
+            <div class="core"></div>
+            <div class="splash-ripple"></div>
+            <div class="splash-ripple r2"></div>
+            <div class="splash-ripple r3"></div>
         </div>
-        <div class="splash-features">
-            <div class="splash-feature">
-                <div class="splash-feature-icon">🍀</div>
-                <div class="splash-feature-label">CLOVER</div>
-            </div>
-            <div class="splash-flow-arrow">→</div>
-            <div class="splash-feature">
-                <div class="splash-feature-icon">🪙</div>
-                <div class="splash-feature-label">COIN</div>
-            </div>
-            <div class="splash-flow-arrow">→</div>
-            <div class="splash-feature">
-                <div class="splash-feature-icon">💎</div>
-                <div class="splash-feature-label">REWARD</div>
-            </div>
+    </div>
+    <div class="splash-name">NEW<span class="accent">TUBE</span></div>
+    <div class="splash-tagline mono-num" style="letter-spacing:0.04em;">TUNE IN · EARN · CASH OUT</div>
+    <div class="splash-loadbar-wrap">
+        <div class="splash-loadbar-label"><span>LOADING</span><span class="pct">92%</span></div>
+        <div class="splash-loadbar-track"><div class="splash-loadbar-fill"></div></div>
+    </div>
+    <div class="splash-features">
+        <div class="splash-feature">
+            <div class="splash-feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg></div>
+            <div class="splash-feature-label">WATCH<b>VIDEOS</b></div>
+        </div>
+        <div class="splash-feature">
+            <div class="splash-feature-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10h6M9 14h4" stroke-linecap="round"/></svg></div>
+            <div class="splash-feature-label">EARN<b>NC</b></div>
+        </div>
+        <div class="splash-feature">
+            <div class="splash-feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h2"/></svg></div>
+            <div class="splash-feature-label">WITHDRAW<b>REWARDS</b></div>
         </div>
     </div>
 </div>
@@ -953,43 +754,52 @@
 // GALAXY BACKGROUND — generates two star-density layers using a
 // single box-shadow trick (one real element, hundreds of "stars"
 // ══════════════════════════════════════════════════════════════
-// ⚠️ FIXED — this block used to `return` immediately (leftover from an
-// older "fully static background" theme decision). That early return was
-// never removed when the background was later re-animated per the
-// "Background Animation UX" spec (5 layers), so Layers 2 & 3 — Floating
-// Clovers and Particle Dust — had CSS animations defined but were never
-// actually generated/appended to the DOM, i.e. they silently did nothing.
-// The old star-dust/box-shadow generator (for the previous "galaxy" theme)
-// has been removed outright since #star-layer/.galaxy-nebula have no CSS
-// backing it anymore and stars aren't part of the current 5-layer spec.
+// ⚠️ CHANGED (theme redesign) — this used to generate random star-dust
+// box-shadows + twinkling dots for the old animated galaxy background.
+// The new theme brief requires a fully static background (see #galaxy-bg
+// CSS above), so this is now intentionally a no-op. Left in place rather
+// than deleted in case animated stars are ever wanted back — just flip
+// the early return off.
 // ══════════════════════════════════════════════════════════════
 (function initGalaxyBackground() {
-    // Layers 2 & 3 of the ambient background spec — Floating Clovers (very
-    // slow upward drift) and Particle Dust (slow upward drift + fade).
-    // Generated once here rather than hardcoded so positions/timings don't
-    // repeat in an obviously looping pattern.
-    const cloverLayer = document.getElementById('amb-clovers');
-    if (cloverLayer) {
-        for (let i = 0; i < 7; i++) {
-            const leaf = document.createElement('span');
-            leaf.textContent = '🍀';
-            leaf.style.left = (Math.random() * 96).toFixed(1) + '%';
-            leaf.style.fontSize = (Math.random() * 10 + 12).toFixed(0) + 'px';
-            leaf.style.animationDuration = (Math.random() * 10 + 22).toFixed(1) + 's'; // 22–32s: "very slow"
-            leaf.style.animationDelay = (Math.random() * -30).toFixed(1) + 's'; // negative = already mid-flight on load
-            cloverLayer.appendChild(leaf);
+    return; // ⚠️ static background per theme redesign — nothing to generate
+    function makeStars(count, minSize, maxSize) {
+        const w = 1000, h = 2000;
+        let shadows = [];
+        for (let i = 0; i < count; i++) {
+            const x = Math.round(Math.random() * w);
+            const y = Math.round(Math.random() * h);
+            const size = (Math.random() * (maxSize - minSize) + minSize).toFixed(1);
+            const op = (Math.random() * 0.6 + 0.3).toFixed(2);
+            shadows.push(`${x}px ${y}px 0 rgba(255,255,255,${op})`);
         }
+        return { shadows: shadows.join(',') };
     }
-    const dustLayer = document.getElementById('amb-dust');
-    if (dustLayer) {
-        for (let i = 0; i < 16; i++) {
-            const dot = document.createElement('span');
-            dot.style.left = (Math.random() * 98).toFixed(1) + '%';
-            const size = (Math.random() * 2 + 2).toFixed(1) + 'px';
-            dot.style.width = size; dot.style.height = size;
-            dot.style.animationDuration = (Math.random() * 6 + 14).toFixed(1) + 's'; // 14–20s: "slow"
-            dot.style.animationDelay = (Math.random() * -20).toFixed(1) + 's';
-            dustLayer.appendChild(dot);
+    const far = document.getElementById('star-layer-far');
+    const near = document.getElementById('star-layer-near');
+    if (far) {
+        const s = makeStars(140, 0.6, 1.2);
+        far.style.boxShadow = s.shadows;
+        far.style.width = '1px'; far.style.height = '1px';
+    }
+    if (near) {
+        const s = makeStars(70, 1.2, 2.2);
+        near.style.boxShadow = s.shadows;
+        near.style.width = '2px'; near.style.height = '2px';
+    }
+    // sprinkle a handful of twinkling stars on top for extra sparkle
+    const bg = document.getElementById('galaxy-bg');
+    if (bg) {
+        for (let i = 0; i < 10; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'star-twinkle';
+            const size = (Math.random() * 1.6 + 1).toFixed(1);
+            dot.style.width = size + 'px';
+            dot.style.height = size + 'px';
+            dot.style.left = Math.random() * 100 + '%';
+            dot.style.top = Math.random() * 100 + '%';
+            dot.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+            bg.appendChild(dot);
         }
     }
 })();
@@ -997,13 +807,18 @@
 // ══════════════════════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════════════════════
-const API_BASE = 'https://clover-nest-t5mz.vercel.app/api';
-const MINI_APP_BASE = 'https://t.me/Clover_nest_bot/CloverNest';
-const OFFICIAL_CHANNEL = 'clover_nest_official'; // mirrors lib/telegram.js
-const COMMUNITY_GROUP = 'clover_nest_community';
+const API_BASE = 'https://newtube-ton.vercel.app/api';
+const MINI_APP_BASE = 'https://t.me/NewTube12_bot/WatchTo_Earn';
+const OFFICIAL_CHANNEL = 'Newtube_offcial'; // ⚠️ SEASON 3 CHANGE — mirrors lib/telegram.js
+const COMMUNITY_GROUP = 'newtube_commonity';
 const WITHDRAW_METHOD_LABELS = { binance: 'Binance UID', tonkeeper: 'Tonkeeper Address' }; // mirrors lib/constants.js WITHDRAW_METHODS labels
+// ⚠️ NEW — mirrors lib/constants.js WITHDRAW_ADS_REQUIRED / FIRST_WITHDRAW_MIN_TASKS.
+// Frontend-only copies for instant UI rendering (progress bars, requirement
+// text) — the server is still the source of truth via withdraw?action=status'
+// `withdrawRequirements` field; these are just the display fallback/labels.
+const WITHDRAW_ADS_REQUIRED = 8;
 // ⚠️ NEW — mirrors lib/constants.js WTC_PER_USD, for the Home hero card's
-// "1 CN = $X" rate line. Display-only; the server is always the source of
+// "1 NC = $X" rate line. Display-only; the server is always the source of
 // truth for actual conversion (see api/withdraw.js).
 const WTC_PER_USD_DISPLAY = 25000;
 const WITHDRAW_TASKS_REQUIRED = 8;
@@ -1020,7 +835,7 @@ if (tg) { try { tg.ready(); } catch (e) {} try { tg.expand(); } catch (e) {} try
 // sends the raw signed `tg.initData` string instead, and the server verifies
 // it cryptographically (see lib/telegramAuth.js) before trusting any user id.
 // This prevents anyone from forging requests with someone else's userId.
-let USER_ID = null, FIRST_NAME = 'User', USERNAME = 'N/A', PHOTO_URL = null, startParam = null;
+let USER_ID = null, FIRST_NAME = 'User', USERNAME = 'N/A', startParam = null;
 let TG_INIT_DATA = tg?.initData || '';
 
 function hydrateDisplayUserFields() {
@@ -1030,7 +845,6 @@ function hydrateDisplayUserFields() {
     USER_ID = String(u.id);
     FIRST_NAME = u.first_name || 'User';
     USERNAME = u.username || 'N/A';
-    PHOTO_URL = u.photo_url || null; // only present if the user has a public profile photo
     startParam = tg?.initDataUnsafe?.start_param || null;
     return true;
 }
@@ -1052,8 +866,14 @@ function toast(message, type = 'info') {
 const ERROR_MESSAGES = {
     below_minimum: 'Minimum amount not reached yet.',
     daily_limit_reached: "Today's limit reached — come back tomorrow.",
+    daily_watch_limit_reached: 'Daily 5-hour video watch limit reached.',
+    lootbox_claim_required: '🎁 Claim your lootbox before earning more!',
+    session_already_claimed: 'This video session was already claimed.',
+    ad_required: 'Please watch an ad first.',
     insufficient_balance: 'Insufficient balance.',
+    insufficient_ads: `Watch ${WITHDRAW_ADS_REQUIRED} ads today before withdrawing.`,
     need_tasks: `Complete at least ${WITHDRAW_TASKS_REQUIRED} tasks (lifetime, one-time) before you can withdraw.`,
+    coming_soon: 'This ad network is coming soon — not available yet.',
     missing_task_token: 'Please reopen the task and try again.',
     invalid_task_token: 'Please reopen the task and try again.',
     claimed_too_fast: "Hold on a moment — you're claiming this a bit too fast.",
@@ -1061,8 +881,9 @@ const ERROR_MESSAGES = {
     task_token_already_used: 'This task was already claimed.',
     task_full: 'This task has reached its completion limit.',
     referral_required: 'Your first withdrawal was free — every withdrawal after that needs 1 valid referral.',
+    insufficient_tickets: "You don't have any lottery tickets — refer someone to earn one.",
     withdraw_already_pending: 'You already have a withdrawal request being processed. Please wait for it to be approved or rejected.',
-    below_minimum_wtc: `Minimum ${MIN_WITHDRAW_WTC.toLocaleString()} CN required to withdraw.`,
+    below_minimum_wtc: `Minimum ${MIN_WITHDRAW_WTC.toLocaleString()} NC required to withdraw.`,
     already_withdrawn_today: 'You already withdrew today — try again tomorrow.',
     address_used_by_other: 'This address is already used by another account.',
     banned: 'Your account has been suspended.',
@@ -1074,6 +895,7 @@ const ERROR_MESSAGES = {
     task_full: 'This task has reached its quota.',
     conflict_retry: 'Please try again in a moment.',
     server_error: 'Server error, please try again shortly.',
+    video_secret_missing: 'Video earning is temporarily unavailable — please try again later.',
     unauthorized: 'Session expired — please reopen the app from Telegram.',
     account_under_review: 'Your account is under review — join the channel & community to unlock earning.',
     withdrawals_closed: 'Withdrawals are currently closed. Any previously submitted request will still be processed.',
@@ -1139,7 +961,7 @@ function triggerBurst(originEl) {
     const rect = originEl ? originEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
     const ox = rect.left + rect.width / 2;
     const oy = rect.top + rect.height / 2;
-    const colors = ['#12C48B', '#22C55E', '#F0B429', '#F1F8F4'];
+    const colors = ['#00F5D4', '#00C8FF', '#7C3CFF', '#F4F8FF'];
     const particles = Array.from({ length: 26 }, () => {
         const angle = Math.random() * Math.PI * 2;
         const speed = 2.5 + Math.random() * 4.5;
@@ -1222,8 +1044,8 @@ function showJoinGate(opts, onJoined) {
     const root = document.getElementById('modal-root');
     const heading = opts.leftAfterVerifying ? 'You left our channel/community' : 'One last step to earn';
     const sub = opts.leftAfterVerifying
-        ? 'Please re-join to keep using Clover Nest.'
-        : 'Join our official channel & community to unlock Clover Nest.';
+        ? 'Please re-join to keep using Cast Nest.'
+        : 'Join our official channel & community to unlock Cast Nest.';
 
     root.innerHTML = `
         <div class="overlay" style="align-items:center;">
@@ -1283,71 +1105,41 @@ function startJoinWatcher() {
 // ══════════════════════════════════════════════════════════════
 const TABS = [
     { id: 'home', label: 'Home', icon: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>' },
-    { id: 'task', label: 'Task', icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
     { id: 'earning', label: 'Earning', icon: null },
-    { id: 'refer', label: 'Friends', icon: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><circle cx="18" cy="8" r="2.5"/><path d="M22 21v-1.5a3 3 0 00-2-2.83"/>' },
+    { id: 'task', label: 'Task', icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
+    { id: 'refer', label: 'Refer', icon: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><circle cx="18" cy="8" r="2.5"/><path d="M22 21v-1.5a3 3 0 00-2-2.83"/>' },
 ];
-// Profile is reached via the header avatar button now, not the bottom nav,
-// so it's intentionally left out of TABS above — but it stays a fully
-// valid tab id for switchTab()/renderProfileTab() to route to.
 
 function renderShell() {
     const root = document.getElementById('app-root');
-    const avatarHtml = PHOTO_URL
-        ? `<img src="${PHOTO_URL}" alt="">`
-        : `<div class="avatar-fallback">${(state.user?.firstName || FIRST_NAME || '?')[0].toUpperCase()}</div>`;
     root.innerHTML = `
         <div class="topbar">
             <div class="topbar-ring"></div>
-            <div class="topbar-row">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <button class="header-avatar-btn" id="header-avatar-btn" aria-label="Profile">${avatarHtml}</button>
-                    <div class="brand"><div class="brand-mark">🍀</div><div class="brand-name">CLOVER<span class="brand-tube"> NEST</span></div></div>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="icon-btn" id="history-btn" aria-label="History" style="position:relative;">
-                        <span class="notif-dot"></span>
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-                    </button>
-                </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button class="icon-btn" id="menu-btn" aria-label="Menu" title="More — coming soon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="brand"><div class="brand-mark">N</div><div class="brand-name">NEW<span class="brand-tube">TUBE</span></div></div>
             </div>
-            <div class="topbar-wallet-row">
-                <div class="wallet-chip wallet-chip-usdt">
-                    <span class="wallet-chip-icon">💵</span>
-                    <span class="wallet-chip-val" id="hdr-usdt-val">$0.0000</span>
-                    <span class="wallet-chip-unit">USDT</span>
-                </div>
-                <div class="wallet-chip wallet-chip-nc">
-                    <span class="wallet-chip-unit">CN</span>
-                    <span class="wallet-chip-val" id="hdr-nc-val">0</span>
-                    <span class="wallet-chip-icon">🍀</span>
-                </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="icon-btn" id="history-btn" aria-label="History">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9 9 0 00-9 9z"/><path d="M12 7v5l3 3"/><path d="M3 12h4"/></svg>
+                </button>
+                <button class="icon-btn" id="profile-btn" aria-label="Profile">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+                </button>
             </div>
         </div>
         <div id="tab-content"></div>
         <div class="bottomnav">
             ${TABS.map(t => t.id === 'earning'
-                ? `<button class="nav-item" data-tab="earning"><div class="nav-earn"><span class="nav-earn-clover">🍀</span></div><div class="nav-label">Earning</div></button>`
+                ? `<button class="nav-item" data-tab="earning"><div class="nav-earn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5a3 3 0 013-1.5h0a3 3 0 010 6h0a3 3 0 000 6h0a3 3 0 003-1.5"/></svg></div><div class="nav-label">Earning</div></button>`
                 : `<button class="nav-item" data-tab="${t.id}"><div class="nav-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${t.icon}</svg></div><div class="nav-label">${t.label}</div></button>`
             ).join('')}
         </div>`;
     document.querySelectorAll('.nav-item').forEach(btn => { btn.onclick = () => switchTab(btn.dataset.tab); });
+    document.getElementById('profile-btn').onclick = openProfileModal;
     document.getElementById('history-btn').onclick = openHistoryModal;
-    document.getElementById('header-avatar-btn').onclick = () => switchTab('profile');
-    updateHeaderBalances();
-}
-
-// Keeps the header's USDT / CN chips in sync with state.user.wtcBalance.
-// Called on shell render and again whenever Home re-renders (i.e. whenever
-// the balance is likely to have changed), since the header itself persists
-// across tab switches and isn't re-rendered per tab.
-function updateHeaderBalances() {
-    const ncEl = document.getElementById('hdr-nc-val');
-    const usdtEl = document.getElementById('hdr-usdt-val');
-    if (!ncEl || !usdtEl) return;
-    const wtc = state.user?.wtcBalance || 0;
-    ncEl.textContent = fmtWTC(wtc);
-    usdtEl.textContent = `$${wtcToUsd(wtc)}`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1458,7 +1250,7 @@ function showGiftBox(gift) {
                 <div class="gb-glow"></div>
                 <div style="position:relative; z-index:1; text-align:center; padding:10px 6px;">
                     <div style="font-size:44px;">🎉</div>
-                    <div class="gb-amount-reveal">+${fmtWTC(r.amount)} CN</div>
+                    <div class="gb-amount-reveal">+${fmtWTC(r.amount)} NC</div>
                     <div class="muted" style="font-size:13px; margin-bottom:20px;">Gift claimed successfully!</div>
                     <button class="btn btn-primary" id="gb-done-btn">Awesome!</button>
                 </div>`;
@@ -1476,11 +1268,52 @@ function showGiftBox(gift) {
 }
 
 function switchTab(tabId) {
+    if (state.activeTab === 'home' && tabId !== 'home' && _tickerInterval) { clearInterval(_tickerInterval); _tickerInterval = null; }
     state.activeTab = tabId;
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
-    const renderers = { home: renderHome, earning: renderEarningTab, task: renderTaskTab, refer: renderReferTab, profile: renderProfileTab };
+    const renderers = { home: renderHome, earning: renderEarningTab, task: renderTaskTab, refer: renderReferTab };
     renderers[tabId]();
     requestAnimationFrame(() => { document.getElementById('tab-content')?.classList.add('tab-fade'); });
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOME — live "recently withdrawn" ticker (real approved withdraws, username masked)
+// ══════════════════════════════════════════════════════════════
+let _tickerInterval = null;
+async function startWithdrawTicker() {
+    if (_tickerInterval) { clearInterval(_tickerInterval); _tickerInterval = null; }
+    const textEl = document.getElementById('wd-ticker-text');
+    if (!textEl) return;
+
+    let items = [];
+    try {
+        const r = await apiGet('data?type=recentWithdrawals');
+        items = r.items || [];
+    } catch { /* ignore — ticker just won't show */ }
+
+    const liveTextEl = document.getElementById('wd-ticker-text'); // re-check, tab may have switched during fetch
+    if (!liveTextEl) return;
+
+    if (!items.length) {
+        liveTextEl.textContent = '💸 Withdraw your earnings straight to TON/USDT!';
+        return;
+    }
+
+    let idx = 0;
+    const show = (i) => {
+        const el = document.getElementById('wd-ticker-text');
+        if (!el) { clearInterval(_tickerInterval); _tickerInterval = null; return; }
+        const w = items[i];
+        el.style.opacity = '0';
+        setTimeout(() => {
+            const el2 = document.getElementById('wd-ticker-text');
+            if (!el2) return;
+            el2.textContent = `${w.username} just withdrew ${Number(w.cashAmount).toFixed(2)} ${w.currency} 🎉`;
+            el2.style.opacity = '1';
+        }, 350);
+    };
+    show(idx);
+    _tickerInterval = setInterval(() => { idx = (idx + 1) % items.length; show(idx); }, 3500);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1490,46 +1323,32 @@ async function renderHome() {
     const root = document.getElementById('tab-content');
     const u = state.user || {};
     const prevBalance = window.__lastShownBalance ?? u.wtcBalance ?? 0;
-    const rateUsd = (1 / WTC_PER_USD_DISPLAY); // e.g. 25,000 CN = $1 -> 1 CN = $0.00004
+    const rateUsd = (1 / WTC_PER_USD_DISPLAY); // e.g. 25,000 NC = $1 -> 1 NC = $0.00004
     root.innerHTML = `
-        <div class="bal-hero anim-in" style="margin:18px 20px 0; border-image: linear-gradient(120deg, rgba(18,196,139,0.55), rgba(11,143,102,0.5)) 1;">
-            <div class="bal-hero-glow" style="background: radial-gradient(circle, rgba(18,196,139,0.18), transparent 70%);"></div>
+        <div class="bal-hero anim-in" style="margin:18px 20px 0; border-image: linear-gradient(120deg, rgba(79,209,245,0.55), rgba(139,92,246,0.5)) 1;">
+            <div class="bal-hero-glow" style="background: radial-gradient(circle, rgba(79,209,245,0.22), transparent 70%);"></div>
             <div class="bal-hero-top">
-                <div class="bal-hero-badge" style="background:linear-gradient(155deg, rgba(18,196,139,0.20), var(--surface-pop) 75%); border-color:rgba(18,196,139,0.42); color:#5FE3B3; box-shadow:0 0 14px rgba(18,196,139,0.25), inset 0 1px 1px rgba(255,255,255,0.15); font-size:17px;">CN</div>
+                <div class="bal-hero-badge" style="background:linear-gradient(155deg, rgba(79,209,245,0.22), var(--surface-pop) 75%); border-color:rgba(79,209,245,0.45); color:#4FD1F5; box-shadow:0 0 18px rgba(79,209,245,0.35), inset 0 1px 1px rgba(255,255,255,0.15);">N</div>
                 <div style="flex:1; min-width:0;">
-                    <div class="muted" style="font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:#EAF2EE;">CN Balance</div>
-                    <div class="bal-hero-num"><span id="home-balance-num">${fmtWTC(prevBalance)}</span> <span style="font-size:16px;">🍀</span></div>
-                    <div id="home-balance-usd" class="mono-num" style="font-size:12px; color:#26E66A; margin-top:2px;">≈ $${wtcToUsd(u.wtcBalance)} USD</div>
-                </div>
-                <div class="bal-hero-nest" aria-hidden="true">
-                    <span class="nest-leaf n1">🍃</span><span class="nest-leaf n2">🍃</span>
-                    <span class="nest-clover">🍀</span>
+                    <div class="muted" style="font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;">NC Balance</div>
+                    <div id="home-balance-num" class="bal-hero-num">${fmtWTC(prevBalance)}</div>
                 </div>
                 ${u.telegramUsername && u.telegramUsername !== 'N/A' ? `<div class="bal-hero-chip">@${u.telegramUsername}</div>` : ''}
             </div>
 
             <div class="bal-hero-ledger-row">
                 <div class="bal-hero-ledger">Ledger ID &nbsp;<b>${USER_ID}</b></div>
-                <button class="ledger-copy-btn" id="ledger-copy-btn" aria-label="Copy Ledger ID">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                </button>
             </div>
-            <div class="bal-hero-rate mono-num"><span style="color:#B8C5BF;">1 CN = $${rateUsd.toFixed(5)}</span> <span style="color:#7F9189;">&nbsp;·&nbsp; ${fmtWTC(u.wtcBalance)} CN ≈ $${wtcToUsd(u.wtcBalance)} USD</span></div>
+            <div class="bal-hero-rate mono-num">1 NC = $${rateUsd.toFixed(5)} &nbsp;·&nbsp; ${fmtWTC(u.wtcBalance)} NC ≈ $${wtcToUsd(u.wtcBalance)} USD</div>
 
-            <button class="action-primary" id="home-withdraw-btn" style="width:100%; margin-top:14px; background:linear-gradient(100deg, var(--coin), var(--coin-deep) 130%); color:#062A18; box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), inset 0 -3px 6px rgba(0,0,0,0.2), 0 3px 0 #076B4C, 0 8px 18px rgba(18,196,139,0.25);">
+            <button class="action-primary" id="home-withdraw-btn" style="width:100%; margin-top:14px; background:linear-gradient(100deg, var(--coin), #8B5CF6 130%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.25), 0 3px 0 #5B3FAF, 0 10px 22px rgba(139,92,246,0.28);">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 19V5M5 12l7-7 7 7"/></svg> Withdraw
-                <span class="wd-btn-ripple"><span class="r r1"></span><span class="r r2"></span><span class="r r3"></span><span class="core"></span></span>
             </button>
         </div>
-        <div class="section-pad anim-in-2" style="margin-top:22px;">
-            <div class="section-title" style="margin-bottom:12px;">Quick actions</div>
-            <div class="quick-actions-row">
-                <button class="qa2-item" data-qa="earning"><div class="qa2-icon" style="--qa-hue:var(--accent); --qa-hue-soft:var(--accent-soft); --qa-fill-a:#14301E; --qa-fill-b:#081409;">🍀<span class="qa2-badge">+</span></div><div class="qa2-label">Collect<br>Clover</div></button>
-                <button class="qa2-item" data-qa="task"><div class="qa2-icon" style="--qa-hue:var(--task-hue); --qa-hue-soft:var(--task-soft); --qa-fill-a:#0E2E22; --qa-fill-b:#071A14;">📋</div><div class="qa2-label">Tasks</div></button>
-                <button class="qa2-item" data-qa="refer"><div class="qa2-icon" style="--qa-hue:var(--signal); --qa-hue-soft:var(--signal-soft); --qa-fill-a:#332510; --qa-fill-b:#1A1508;">👥<span class="qa2-badge">+</span></div><div class="qa2-label">Invite<br>Friends</div></button>
-                <button class="qa2-item" data-qa="profile"><div class="qa2-icon" style="--qa-hue:var(--signal); --qa-hue-soft:var(--signal-soft); --qa-fill-a:#362B10; --qa-fill-b:#1B1508;">💰</div><div class="qa2-label">My<br>Earnings</div></button>
-                <button class="qa2-item" data-qa="withdraw"><div class="qa2-icon" style="--qa-hue:var(--coin); --qa-hue-soft:var(--coin-soft); --qa-fill-a:#0F332C; --qa-fill-b:#071B17;">🔄</div><div class="qa2-label">Convert<br>to USDT</div></button>
-            </div>
+
+        <div class="live-ticker anim-in-2" style="margin-left:20px; margin-right:20px;">
+            <span class="live-dot"></span>
+            <span id="wd-ticker-text" class="muted" style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity 0.35s ease;">Loading recent activity...</span>
         </div>
 
         <div class="promo-inline-box anim-in-2" style="margin:16px 20px 0;">
@@ -1537,90 +1356,94 @@ async function renderHome() {
                 <div class="promo-inline-icon">🎁</div>
                 <div>
                     <div style="font-weight:600; font-size:14px; color:var(--gift-hue);">Have a promo code?</div>
-                    <div class="muted" style="font-size:11.5px;">Redeem it for free CN</div>
+                    <div class="muted" style="font-size:11.5px;">Redeem it for free NC</div>
                 </div>
             </div>
             <div style="display:flex; gap:8px; margin-top:12px;">
                 <input class="field-input" id="home-promo-input" placeholder="ENTER CODE" style="flex:1; text-align:center; font-family:var(--font-display); font-size:14px; letter-spacing:2px; text-transform:uppercase; margin:0;">
-                <button class="btn" id="home-promo-submit" style="width:auto; padding:0 18px; background:linear-gradient(120deg, var(--signal), var(--coin) 130%); border:0.5px solid rgba(240,180,41,0.4); color:#0A0F0C; font-weight:700;">Redeem</button>
+                <button class="btn" id="home-promo-submit" style="width:auto; padding:0 18px; background:linear-gradient(120deg, #E8C547, var(--coin) 130%); border:0.5px solid rgba(232,197,71,0.4); color:#0A0F0C; font-weight:700;">Redeem</button>
             </div>
+        </div>
+
+        <div class="quick-grid anim-in-3" style="margin:16px 20px 0;">
+            <button class="quick-grid-card" id="home-leaderboard-btn">
+                <div class="quick-grid-icon" style="background:rgba(245,185,66,0.16);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5B942" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM17 6h2a2 2 0 010 4h-2M7 6H5a2 2 0 000 4h2"/></svg>
+                </div>
+                <div><div class="quick-grid-title">Leaderboard</div><div class="quick-grid-sub">Top earners ranking</div></div>
+            </button>
         </div>
 
         <div class="section-pad anim-in-4" style="margin-top:22px;">
             <div class="section-title" style="margin-bottom:12px;">Platform stats</div>
             <div class="stat-strip" id="home-platform-stats">
-                <div class="stat-strip-item pro">
-                    <span class="stat-strip-sparkle">✨</span>
-                    <div class="stat-strip-icon" style="background:var(--accent-soft); color:var(--accent);">👤</div>
-                    <div class="stat-strip-num skel" style="height:19px; width:38px; margin:8px auto 0;"></div>
-                    <div class="stat-strip-label">Total Users</div>
-                    <svg class="stat-strip-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,24 L14,20 L28,22 L42,14 L56,17 L70,8 L84,10 L100,3" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>
+                <div class="stat-strip-item">
+                    <div class="stat-strip-icon" style="background:var(--money-soft);">✅</div>
+                    <div class="stat-strip-num skel" style="height:19px; width:28px; margin:8px auto 0;"></div>
+                    <div class="stat-strip-label">Tasks available</div>
                 </div>
-                <div class="stat-strip-item pro">
-                    <span class="stat-strip-sparkle">✨</span>
-                    <div class="stat-strip-icon" style="background:var(--coin-soft); color:var(--coin);">🍀</div>
-                    <div class="stat-strip-num skel" style="height:19px; width:38px; margin:8px auto 0;"></div>
-                    <div class="stat-strip-label">Clover Collected</div>
-                    <svg class="stat-strip-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,22 L14,23 L28,17 L42,19 L56,12 L70,15 L84,6 L100,9" fill="none" stroke="var(--coin)" stroke-width="2"/></svg>
+                <div class="stat-strip-item">
+                    <div class="stat-strip-icon" style="background:rgba(79,163,247,0.16);">👥</div>
+                    <div class="stat-strip-num" style="color:#4FA3F7;">${u.referralCount || 0}</div>
+                    <div class="stat-strip-label">Your referrals</div>
                 </div>
-                <div class="stat-strip-item pro">
-                    <span class="stat-strip-sparkle">✨</span>
-                    <div class="stat-strip-icon" style="background:var(--signal-soft); color:var(--signal);">🪙</div>
-                    <div class="stat-strip-num skel" style="height:19px; width:38px; margin:8px auto 0;"></div>
-                    <div class="stat-strip-label">Total Withdrawn</div>
-                    <svg class="stat-strip-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,25 L14,21 L28,23 L42,16 L56,18 L70,10 L84,13 L100,4" fill="none" stroke="var(--signal)" stroke-width="2"/></svg>
-                </div>
+            </div>
+        </div>
+
+        <div class="section-pad anim-in-4" style="margin-top:20px; margin-bottom:6px;">
+            <div class="qa-row">
+                <button class="qa-item" id="home-qa-refer">
+                    <div class="qa-icon qa-active" style="background:radial-gradient(circle, rgba(139,92,246,0.18), var(--surface-raised) 78%); border-color:rgba(139,92,246,0.4); box-shadow:0 0 14px rgba(139,92,246,0.25);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M17 2l4 4-4 4M21 6H9a4 4 0 00-4 4v1M7 22l-4-4 4-4M3 18h12a4 4 0 004-4v-1"/></svg>
+                    </div>
+                    <div class="qa-label">Refer &amp; Earn</div>
+                    <div class="qa-sub">Invite friends</div>
+                </button>
+                <button class="qa-item" id="home-qa-daily">
+                    <div class="qa-icon">
+                        <span class="qa-soon-badge">SOON</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-muted)" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                    </div>
+                    <div class="qa-label">Daily Bonus</div>
+                    <div class="qa-sub">Claim now</div>
+                </button>
             </div>
         </div>`;
 
     animateCountUp(document.getElementById('home-balance-num'), prevBalance, u.wtcBalance || 0, 800);
     window.__lastShownBalance = u.wtcBalance || 0;
-    updateHeaderBalances();
 
     document.getElementById('home-withdraw-btn').onclick = openWithdrawModal;
-    document.getElementById('ledger-copy-btn').onclick = () => {
-        navigator.clipboard?.writeText(USER_ID).then(() => toast('📋 Ledger ID copied!', 'success')).catch(() => {});
-    };
-    // Quick Actions — real shortcuts into the app's existing tabs/modal,
-    // not decorative placeholders.
-    document.querySelectorAll('.qa2-item').forEach(btn => {
-        btn.onclick = () => {
-            const qa = btn.dataset.qa;
-            if (qa === 'withdraw') openWithdrawModal();
-            else switchTab(qa);
-        };
-    });
     document.getElementById('home-promo-submit').onclick = () => redeemPromoCode(
         document.getElementById('home-promo-input').value.trim(),
         document.getElementById('home-promo-submit'),
         () => { if (state.activeTab === 'home') renderHome(); }
     );
+    document.getElementById('home-leaderboard-btn').onclick = openLeaderboardModal;
+    startWithdrawTicker();
 
-    // Platform-wide stats: real live counts from the new data?type=platformStats
-    // aggregate (see api/data.js) — Total Users, Clover Collected (sum of
-    // every user's lifetime WTC earned), Total Withdrawn (sum of all
-    // approved withdrawals in USD). Runs after the initial paint so it
-    // doesn't block Home from showing (skeleton -> number).
+    // Bottom quick-action row — Refer & Earn opens the same Telegram share
+    // sheet the Refer tab already uses (same link, no new backend). Daily
+    // Bonus is a visual-only placeholder for now — just a toast — so
+    // nothing here can touch balances, tasks, or referral data.
+    document.getElementById('home-qa-refer').onclick = () => {
+        const link = `${MINI_APP_BASE}?startapp=${USER_ID}`;
+        const text = encodeURIComponent('🚀 Join Cast Nest! Earn free Nest Coin!');
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
+    };
+    document.getElementById('home-qa-daily').onclick = () => toast('🚧 Coming soon!', 'info');
+
+    // Platform-wide stats: total videos/tasks currently available. Reuses the
+    // SAME data?type=tasks endpoint the Task tab already calls -- no new
+    // backend endpoint needed. Runs after the initial paint so it doesn't
+    // block Home from showing (skeleton -> number).
     (async () => {
-        const r = await apiGet('data?type=platformStats');
+        const tasksRes = await apiGet('data?type=tasks');
         const statsEl = document.getElementById('home-platform-stats');
         if (!statsEl) return; // user navigated away before this resolved
         const nums = statsEl.querySelectorAll('.stat-strip-num.skel');
-        if (!r.ok) { nums.forEach(n => { n.classList.remove('skel'); n.style.cssText = ''; n.textContent = '—'; }); return; }
-        const vals = [r.totalUsers, r.totalCloverCollected, `$${fmtAbbrev(r.totalWithdrawnUsd)}`];
-        nums.forEach((n, i) => {
-            n.classList.remove('skel'); n.style.cssText = '';
-            n.textContent = i === 2 ? vals[i] : fmtAbbrev(vals[i]);
-        });
+        if (nums[0]) { nums[0].classList.remove('skel'); nums[0].style.cssText = ''; nums[0].textContent = tasksRes.ok ? (tasksRes.tasks?.length || 0) : '—'; }
     })();
-}
-
-// "25.6K" / "3.2M" style abbreviation for the Platform Stats strip.
-function fmtAbbrev(n) {
-    n = Number(n) || 0;
-    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
-    return String(Math.round(n));
 }
 
 // Shared promo-redeem flow (ad-gate -> claim), used by BOTH the inline Home
@@ -1633,9 +1456,9 @@ async function redeemPromoCode(code, btn, onSuccess) {
 
     const r = await apiPost('earn', { action: 'claimPromo', code });
     if (r.ok) {
-        toast(`+${r.reward} CN added!`, 'success');
+        toast(`+${r.reward} NC added!`, 'success');
         triggerBurst(btn);
-        showCongrats(`+${r.reward} CN`, '🎁');
+        showCongrats(`+${r.reward} NC`, '🎁');
         await refreshUser();
         onSuccess?.();
     } else {
@@ -1644,53 +1467,98 @@ async function redeemPromoCode(code, btn, onSuccess) {
     btn.textContent = originalLabel; btn.disabled = false;
 }
 
-
-function renderProfileTab() {
-    const root = document.getElementById('tab-content');
-    const u = state.user || {};
-    const avatarHtml = PHOTO_URL
-        ? `<img src="${PHOTO_URL}" alt="" style="width:72px; height:72px; border-radius:50%; object-fit:cover; margin:0 auto 10px; display:block; border:2px solid var(--glass-border);">`
-        : `<div style="width:72px; height:72px; border-radius:50%; background:var(--signal-soft); color:var(--signal); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:26px; margin:0 auto 10px;">${(u.firstName || FIRST_NAME || '?')[0].toUpperCase()}</div>`;
-    root.innerHTML = `
-        <div class="section-pad anim-in" style="margin-top:22px; text-align:center;">
-            ${avatarHtml}
-            <div style="font-weight:600; font-size:17px;">${u.firstName || FIRST_NAME || 'User'}</div>
-            <div class="muted" style="font-size:13px;">@${u.telegramUsername || USERNAME || 'n/a'} · ID ${USER_ID}</div>
-        </div>
-        <div class="section-pad anim-in-2" style="margin-top:18px;">
-            <div class="card">
-                <table style="width:100%; font-size:13px;">
-                    <tr><td class="muted" style="padding:8px 0;">Total balance</td><td style="text-align:right;">${fmtWTC(u.wtcBalance)} CN</td></tr>
-                    <tr><td class="muted" style="padding:8px 0;">Lifetime earned</td><td style="text-align:right;">${fmtWTC(u.lifetimeWtcEarned)} CN</td></tr>
-                    <tr><td class="muted" style="padding:8px 0;">Referrals</td><td style="text-align:right;">${u.referralCount || 0}</td></tr>
-                    <tr><td class="muted" style="padding:8px 0;">Tasks completed</td><td style="text-align:right;">${(u.completedTasks || []).length}</td></tr>
-                </table>
+// Leaderboard moved behind its own button/modal instead of living inline on
+// Home permanently (same podium-rendering logic as before, just relocated).
+async function openLeaderboardModal() {
+    document.getElementById('modal-root').innerHTML = `
+        <div class="overlay" onclick="if(event.target===this)this.remove()">
+            <div class="sheet anim-in" style="max-height:80vh; overflow-y:auto;">
+                <div class="sheet-handle"></div>
+                <div class="section-title" style="margin-bottom:2px;">🏆 Top 20 Referrers</div>
+                <div class="muted" style="font-size:12px; margin-bottom:14px;">Ranked by lifetime referrals.</div>
+                <div id="lb-modal-body">
+                    <div class="skel" style="height:14px; width:70%; margin:10px 0;"></div>
+                    <div class="skel" style="height:14px; width:50%; margin:10px 0;"></div>
+                    <div class="skel" style="height:14px; width:60%; margin:10px 0;"></div>
+                </div>
             </div>
-        </div>
-        <div class="section-pad anim-in-3" style="margin-top:16px;">
-            <button class="btn btn-outline" id="profile-history-btn" style="width:100%;">📜 Withdrawal History</button>
         </div>`;
-    document.getElementById('profile-history-btn').onclick = openHistoryModal;
+
+    const body = document.getElementById('lb-modal-body');
+    const r = await apiGet('data?type=leaderboard');
+    if (!body) return; // modal closed before this resolved
+    if (!r.ok || !r.leaderboard?.length) {
+        body.innerHTML = `<div class="muted" style="text-align:center; padding:16px 0;">No data yet.</div>`;
+        return;
+    }
+    const list = r.leaderboard.slice(0, 20);
+    const top3 = list.slice(0, 3);
+    const rest = list.slice(3);
+    const medals = ['🥇', '🥈', '🥉'];
+    const podiumOrder = [1, 0, 2].filter(i => top3[i]);
+    const podiumHtml = top3.length ? `
+        <div class="podium">
+            ${podiumOrder.map(i => {
+                const p = top3[i];
+                if (!p) return '';
+                return `
+                <div class="podium-slot rank-${i + 1}" style="opacity:0; animation:rise-in 0.4s ease ${i * 0.06}s forwards;">
+                    <div class="podium-avatar" style="background:var(--signal-soft); color:var(--signal);">${(p.firstName || '?')[0].toUpperCase()}</div>
+                    <div class="podium-medal">${medals[i]}</div>
+                    <div class="podium-name">${p.firstName || 'User'}</div>
+                    <div class="podium-refs">${p.referralCount || 0} refs</div>
+                </div>`;
+            }).join('')}
+        </div>
+        ${rest.length ? '<div style="height:1px; background:var(--border); margin:6px 0 4px;"></div>' : ''}
+    ` : '';
+    const restHtml = rest.map((p, i) => `
+        <div class="lb-row" style="opacity:0; animation:rise-in 0.4s ease ${Math.min(i * 0.04, 0.4)}s forwards; ${i < rest.length - 1 ? 'border-bottom:0.5px solid var(--border);' : ''}">
+            <div class="lb-rank-num">${i + 4}</div>
+            <div style="width:30px; height:30px; border-radius:50%; background:var(--surface-raised); color:var(--ink-faint); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px;">${(p.firstName || '?')[0].toUpperCase()}</div>
+            <div style="flex:1; font-size:13.5px; font-weight:500;">${p.firstName || 'User'}</div>
+            <div style="font-size:12.5px; color:var(--ink-muted); font-family:var(--font-display);">${p.referralCount || 0} refs</div>
+        </div>`).join('');
+    body.innerHTML = podiumHtml + restHtml;
 }
 
 
+function openProfileModal() {
+    const u = state.user || {};
+    document.getElementById('modal-root').innerHTML = `
+        <div class="overlay" onclick="if(event.target===this)this.remove()">
+            <div class="sheet anim-in">
+                <div class="sheet-handle"></div>
+                <div style="text-align:center; margin-bottom:18px;">
+                    <div style="width:60px; height:60px; border-radius:50%; background:var(--signal-soft); color:var(--signal); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:22px; margin:0 auto 10px;">${(u.firstName || '?')[0].toUpperCase()}</div>
+                    <div style="font-weight:600; font-size:16px;">${u.firstName || 'User'}</div>
+                    <div class="muted" style="font-size:13px;">@${u.telegramUsername || 'n/a'} · ID ${USER_ID}</div>
+                </div>
+                <div class="card">
+                    <table style="width:100%; font-size:13px;">
+                        <tr><td class="muted" style="padding:6px 0;">Total balance</td><td style="text-align:right;">${fmtWTC(u.wtcBalance)} NC</td></tr>
+                        <tr><td class="muted" style="padding:6px 0;">Lifetime earned</td><td style="text-align:right;">${fmtWTC(u.lifetimeWtcEarned)} NC</td></tr>
+                        <tr><td class="muted" style="padding:6px 0;">Referrals</td><td style="text-align:right;">${u.referralCount || 0}</td></tr>
+                        <tr><td class="muted" style="padding:6px 0;">Tasks completed</td><td style="text-align:right;">${(u.completedTasks || []).length}</td></tr>
+                    </table>
+                </div>
+                <button class="btn btn-outline" style="margin-top:14px;" onclick="document.getElementById('modal-root').innerHTML=''">Close</button>
+            </div>
+        </div>`;
+}
+
 // ══════════════════════════════════════════════════════════════
-// WITHDRAW 2.0 — completely rebuilt flow (new structure, new UI):
-//   Step 1 "Amount"   — balance card, method radio-cards, amount input
-//                        with quick-% chips, live receive preview,
-//                        requirements checklist.
-//   Step 2 "Confirm"  — full summary (method / destination / fees /
-//                        net) before the request is actually sent.
-//   Step 3 "Done"     — success screen with a confirmation animation.
-// Still talks to the exact same api/withdraw.js endpoints — this is a
-// frontend rebuild only, the server remains the source of truth for
-// every number shown here.
+// WITHDRAW MODAL — SEASON 4 — single simple form (no tiers, no levels,
+// no separate convert step, no address lock). User types a NC amount,
+// picks a method, sees live "you receive" + a requirements checklist,
+// and submits. Mirrors api/withdraw.js exactly (server is still the
+// source of truth — this is just the live display/validation copy).
 // ══════════════════════════════════════════════════════════════
 const WITHDRAW_METHODS_UI = {
-    binance:   { label: 'Binance UID', short: 'Binance', currency: 'USDT', placeholder: 'Enter your Binance UID',
-                 icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 3-3 3-3-3 3-3zM12 16l3 3-3 3-3-3 3-3zM2 12l3-3 3 3-3 3-3-3zM16 12l3-3 3 3-3 3-3-3z"/></svg>' },
-    tonkeeper: { label: 'Tonkeeper Address', short: 'Tonkeeper', currency: 'USDT', placeholder: 'UQ... wallet address',
-                 icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 10l4-4 4 4M12 6v10"/></svg>' },
+    binance:   { label: 'Binance UID', currency: 'USDT', placeholder: 'Enter your Binance UID',
+                 icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 3-3 3-3-3 3-3zM12 16l3 3-3 3-3-3 3-3zM2 12l3-3 3 3-3 3-3-3zM16 12l3-3 3 3-3 3-3-3z"/></svg>' },
+    tonkeeper: { label: 'Tonkeeper Address', currency: 'USDT', placeholder: 'UQ... wallet address',
+                 icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 10l4-4 4 4M12 6v10"/></svg>' },
 };
 
 function calcNetUsdDisplay(wtc) {
@@ -1700,28 +1568,11 @@ function calcNetUsdDisplay(wtc) {
     return net;
 }
 
-function wd2StepsHtml(activeStep) {
-    // activeStep: 1 = Amount, 2 = Confirm, 3 = Done
-    const step = (n, label) => `
-        <div class="wd2-step-dot ${activeStep > n ? 'done' : ''} ${activeStep === n ? 'active' : ''}">${activeStep > n ? '✓' : n}</div>
-        <div class="wd2-step-label ${activeStep >= n ? 'active' : ''}">${label}</div>`;
-    return `
-        <div class="wd2-steps">
-            ${step(1, 'Amount')}
-            <div class="wd2-step-line ${activeStep > 1 ? 'done' : ''}"></div>
-            ${step(2, 'Confirm')}
-            <div class="wd2-step-line ${activeStep > 2 ? 'done' : ''}"></div>
-            ${step(3, 'Done')}
-        </div>`;
-}
-
 function openWithdrawModal() {
     let method = 'binance';
     let status = null;       // full GET ?action=status response
     let loadFailed = false;
     let withdrawalsOpen = true;
-    let amount = 0;
-    let details = '';
 
     function renderClosed() {
         document.getElementById('modal-root').innerHTML = `
@@ -1743,203 +1594,117 @@ function openWithdrawModal() {
 
     function reqLine(label, met, detail) {
         return `
-        <div class="wd2-req-line" style="color:${met ? 'var(--success)' : 'var(--pending)'};">
+        <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:6px; color:${met ? 'var(--success)' : 'var(--pending)'};">
             <span>${met ? '✅' : '⏳'}</span><span>${label}${detail ? ` <span class="muted" style="color:inherit; opacity:0.85;">${detail}</span>` : ''}</span>
         </div>`;
     }
 
-    // ── STEP 1 — Amount & Method ──────────────────────────────
-    function renderStep1() {
+    function render() {
         const u = state.user || {};
         const wtcBalance = u.wtcBalance || 0;
+        const m = WITHDRAW_METHODS_UI[method];
 
         document.getElementById('modal-root').innerHTML = `
             <div class="overlay" onclick="if(event.target===this)this.remove()">
-                <div class="sheet anim-in" style="max-height:90vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
-                    <div class="jg-glow" style="opacity:0.4;"></div>
+                <div class="sheet anim-in" style="max-height:88vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
+                    <div class="jg-glow" style="opacity:0.5;"></div>
                     <div class="sheet-handle" style="position:relative; z-index:1;"></div>
-                    ${wd2StepsHtml(1)}
+                    <div class="section-title" style="margin-bottom:14px; position:relative; z-index:1;">Withdraw NC</div>
 
                     <div style="overflow-y:auto; flex:1; position:relative; z-index:1;">
-                        <div class="wd2-balance-card">
-                            <div class="wd2-balance-label">Available balance</div>
-                            <div class="wd2-balance-num" id="wd2-balance-num">${fmtWTC(wtcBalance)} CN</div>
-                            <div class="wd2-balance-usd">≈ $${wtcToUsd(wtcBalance)} USD</div>
-                        </div>
-
-                        <div class="wd2-section-label">Payout method</div>
-                        <div class="wd2-method-grid">
+                        <div class="field-label" style="margin-top:0;">Select gateway</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
                             ${Object.entries(WITHDRAW_METHODS_UI).map(([key, cfg]) => `
-                                <button type="button" class="wd2-method-card ${method === key ? 'selected' : ''}" data-method="${key}">
-                                    <div class="wd2-method-radio"></div>
-                                    <div class="wd2-method-icon">${cfg.icon}</div>
-                                    <div class="wd2-method-name">${cfg.short}</div>
+                                <button class="btn ${method === key ? 'btn-primary' : 'btn-outline'}" data-method="${key}" style="display:flex; align-items:center; justify-content:center; gap:7px; height:56px; flex-direction:column; font-size:12px;">
+                                    ${cfg.icon}${cfg.label.split(' ')[0]}
                                 </button>`).join('')}
                         </div>
 
-                        <div class="wd2-section-label">${WITHDRAW_METHODS_UI[method].label}</div>
-                        <input class="field-input" id="wd-details" placeholder="${WITHDRAW_METHODS_UI[method].placeholder}" value="${details.replace(/"/g, '&quot;')}" style="margin-top:0;">
+                        <div class="field-label">${m.label}</div>
+                        <input class="field-input" id="wd-details" placeholder="${m.placeholder}">
 
-                        <div class="wd2-section-label">Amount to withdraw</div>
-                        <input class="field-input" id="wd-amount" type="number" placeholder="${MIN_WITHDRAW_WTC}" value="${amount || ''}" style="margin-top:0;">
-                        <div class="wd2-chip-row">
-                            <button type="button" class="wd2-chip" data-pct="25">25%</button>
-                            <button type="button" class="wd2-chip" data-pct="50">50%</button>
-                            <button type="button" class="wd2-chip" data-pct="75">75%</button>
-                            <button type="button" class="wd2-chip max" data-pct="100">MAX</button>
+                        <div class="field-label">Amount (NC) — minimum ${fmtWTC(MIN_WITHDRAW_WTC)}</div>
+                        <div style="display:flex; gap:8px;">
+                            <input class="field-input" id="wd-amount" type="number" placeholder="${MIN_WITHDRAW_WTC}" style="flex:1;">
+                            <button class="btn btn-outline" id="wd-max" style="width:auto; padding:0 16px;">MAX</button>
                         </div>
-                        <div class="muted" style="font-size:11px; margin-top:8px;">${fmtWTC(WTC_PER_USD_DISPLAY)} CN = 1 USDT · minimum ${fmtWTC(MIN_WITHDRAW_WTC)} CN</div>
+                        <div class="muted" style="font-size:11px; margin-top:5px;">${fmtWTC(WTC_PER_USD_DISPLAY)} NC = 1 USDT · Balance: <span class="mono-num">${fmtWTC(wtcBalance)} NC</span></div>
 
-                        <div class="wd2-receive-card">
-                            <span class="wd2-receive-label">You'll receive</span>
-                            <span id="wd2-receive" class="wd2-receive-num">$0.0000</span>
+                        <div class="card" style="margin-top:14px; padding:12px 14px;">
+                            ${!status ? `<div class="muted" style="font-size:12.5px; text-align:center; padding:6px 0;">${loadFailed ? "Couldn't load — try again." : 'Loading requirements...'}</div>` : `
+                                ${reqLine(`Complete ${status.withdrawRequirements.tasksRequired} tasks today`, status.withdrawRequirements.tasksMet, `(${status.withdrawRequirements.tasksHave}/${status.withdrawRequirements.tasksRequired})`)}
+                                ${reqLine(`Watch ${status.withdrawRequirements.adsRequired} ads today`, status.withdrawRequirements.adsMet, `(${status.withdrawRequirements.adsWatchedToday}/${status.withdrawRequirements.adsRequired})`)}
+                                ${status.referralRequirement.isFirstWithdrawFree
+                                    ? reqLine(`First withdrawal — free, up to ${fmtWTC(status.referralRequirement.firstWithdrawMaxWtc)} NC`, true, '')
+                                    : reqLine('Valid referral available', status.referralRequirement.met, `(${status.referralRequirement.validReferralsAvailable} available)`)}
+                            `}
                         </div>
 
-                        <div class="wd2-req-card" id="wd2-req-card">
-                            <div class="muted" style="font-size:12.5px; text-align:center; padding:6px 0;">${loadFailed ? "Couldn't load requirements — try again." : 'Loading requirements...'}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+                            <span class="muted" style="font-size:13px;">You receive</span>
+                            <span id="wd-receive" class="mono-num" style="font-size:18px; font-weight:700; color:var(--money);">$0.0000</span>
                         </div>
+                        <div class="muted" style="font-size:10.5px; margin-top:4px;">Fees: ${WITHDRAW_FEE_PERCENT_DISPLAY}% + ${WITHDRAW_SECOND_FEE_PERCENT_DISPLAY}%, taken together at withdraw time.</div>
                     </div>
 
-                    <button class="btn btn-primary" style="margin-top:14px; position:relative; z-index:1; background:linear-gradient(100deg, var(--signal), #A855F7 130%);" id="wd2-next" disabled>Loading...</button>
+                    <button class="btn btn-money" style="margin-top:14px; position:relative; z-index:1;" id="wd-submit" disabled>Loading...</button>
                 </div>
             </div>`;
 
         document.querySelectorAll('[data-method]').forEach(btn => {
-            btn.onclick = () => { method = btn.dataset.method; details = ''; renderStep1(); };
+            btn.onclick = () => { method = btn.dataset.method; render(); };
         });
-        document.querySelectorAll('[data-pct]').forEach(chip => {
-            chip.onclick = () => {
-                const pct = parseInt(chip.dataset.pct, 10) / 100;
-                const cap = (status?.referralRequirement?.isFirstWithdrawFree)
-                    ? Math.min(wtcBalance, status.referralRequirement.firstWithdrawMaxWtc)
-                    : wtcBalance;
-                document.getElementById('wd-amount').value = Math.floor(cap * pct);
-                updateStep1();
-            };
-        });
-        document.getElementById('wd-amount').oninput = updateStep1;
-        document.getElementById('wd-details').oninput = updateStep1;
-        document.getElementById('wd2-next').onclick = goToStep2;
-        updateStep1();
-        renderRequirements();
+        document.getElementById('wd-max').onclick = () => {
+            // ⚠️ NEW — for a first-time (free) withdrawal, MAX shouldn't
+            // fill in more than the free cap, or it'd just disable the
+            // submit button immediately.
+            const cap = (status?.referralRequirement?.isFirstWithdrawFree)
+                ? Math.min(wtcBalance, status.referralRequirement.firstWithdrawMaxWtc)
+                : wtcBalance;
+            document.getElementById('wd-amount').value = Math.floor(cap);
+            updateReceiveAndSubmit();
+        };
+        document.getElementById('wd-amount').oninput = updateReceiveAndSubmit;
+        document.getElementById('wd-submit').onclick = submitWithdraw;
+        updateReceiveAndSubmit();
     }
 
-    function renderRequirements() {
-        const card = document.getElementById('wd2-req-card');
-        if (!card) return;
-        if (!status) {
-            card.innerHTML = `<div class="muted" style="font-size:12.5px; text-align:center; padding:6px 0;">${loadFailed ? "Couldn't load requirements — try again." : 'Loading requirements...'}</div>`;
-            return;
-        }
-        card.innerHTML = `
-            ${reqLine(`Complete ${status.withdrawRequirements.tasksRequired} tasks`, status.withdrawRequirements.tasksMet, `(${status.withdrawRequirements.tasksHave}/${status.withdrawRequirements.tasksRequired})`)}
-            ${status.referralRequirement.isFirstWithdrawFree
-                ? reqLine(`First withdrawal — free, up to ${fmtWTC(status.referralRequirement.firstWithdrawMaxWtc)} CN`, true, '')
-                : reqLine('Valid referral available', status.referralRequirement.met, `(${status.referralRequirement.validReferralsAvailable} available)`)}
-        `;
-    }
-
-    function updateStep1() {
+    function updateReceiveAndSubmit() {
         const amountEl = document.getElementById('wd-amount');
-        const detailsEl = document.getElementById('wd-details');
-        const btn = document.getElementById('wd2-next');
-        const receiveEl = document.getElementById('wd2-receive');
+        const btn = document.getElementById('wd-submit');
+        const receiveEl = document.getElementById('wd-receive');
         if (!amountEl || !btn) return;
 
         const wtc = Math.floor(parseFloat(amountEl.value) || 0);
-        amount = wtc;
-        details = detailsEl ? detailsEl.value.trim() : details;
         receiveEl.textContent = `$${calcNetUsdDisplay(wtc).toFixed(4)}`;
 
         if (!status) { btn.disabled = true; btn.textContent = loadFailed ? 'Retry' : 'Loading...'; return; }
 
         const u = state.user || {};
         const wtcBalance = u.wtcBalance || 0;
-        const reqOk = status.withdrawRequirements.tasksMet;
+        const reqOk = status.withdrawRequirements.adsMet && status.withdrawRequirements.tasksMet;
         const refOk = status.referralRequirement.met;
 
         if (loadFailed) { btn.disabled = false; btn.textContent = 'Retry'; return; }
-        if (!details) { btn.disabled = true; btn.textContent = `Enter your ${WITHDRAW_METHODS_UI[method].currency} address`; return; }
-        if (wtc < MIN_WITHDRAW_WTC) { btn.disabled = true; btn.textContent = `Minimum ${fmtWTC(MIN_WITHDRAW_WTC)} CN`; return; }
-        if (wtc > wtcBalance) { btn.disabled = true; btn.textContent = 'Insufficient CN balance'; return; }
+        if (wtc < MIN_WITHDRAW_WTC) { btn.disabled = true; btn.textContent = `Minimum ${fmtWTC(MIN_WITHDRAW_WTC)} NC`; return; }
+        if (wtc > wtcBalance) { btn.disabled = true; btn.textContent = 'Insufficient NC balance'; return; }
+        // ⚠️ NEW — the free first withdrawal is capped; catch it client-side
+        // too so the button disables instead of letting the user submit and
+        // only then find out from the server.
         if (status.referralRequirement.isFirstWithdrawFree && wtc > status.referralRequirement.firstWithdrawMaxWtc) {
-            btn.disabled = true; btn.textContent = `Free first withdrawal capped at ${fmtWTC(status.referralRequirement.firstWithdrawMaxWtc)} CN`; return;
+            btn.disabled = true; btn.textContent = `Free first withdrawal capped at ${fmtWTC(status.referralRequirement.firstWithdrawMaxWtc)} NC`; return;
         }
         if (!reqOk) { btn.disabled = true; btn.textContent = 'Complete requirements above'; return; }
         if (!refOk) { btn.disabled = true; btn.textContent = 'Need 1 valid referral'; return; }
         btn.disabled = false;
-        btn.textContent = 'Continue';
-    }
-
-    function goToStep2() {
-        renderStep2();
-    }
-
-    // ── STEP 2 — Confirm ──────────────────────────────────────
-    function renderStep2() {
-        const m = WITHDRAW_METHODS_UI[method];
-        const net = calcNetUsdDisplay(amount);
-
-        document.getElementById('modal-root').innerHTML = `
-            <div class="overlay" onclick="if(event.target===this)this.remove()">
-                <div class="sheet anim-in" style="max-height:90vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
-                    <div class="jg-glow" style="opacity:0.4;"></div>
-                    <div class="sheet-handle" style="position:relative; z-index:1;"></div>
-                    ${wd2StepsHtml(2)}
-
-                    <div style="overflow-y:auto; flex:1; position:relative; z-index:1;">
-                        <div class="section-title" style="margin-bottom:12px;">Review your withdrawal</div>
-                        <div class="wd2-summary-card">
-                            <div class="wd2-summary-row"><span class="lbl">Method</span><span class="val">${m.icon} ${m.short}</span></div>
-                            <div class="wd2-summary-row"><span class="lbl">Destination</span><span class="val" style="word-break:break-all; max-width:170px;">${details}</span></div>
-                            <div class="wd2-summary-row"><span class="lbl">Amount</span><span class="val">${fmtWTC(amount)} CN</span></div>
-                            <div class="wd2-summary-row"><span class="lbl">Fees (${WITHDRAW_FEE_PERCENT_DISPLAY}% + ${WITHDRAW_SECOND_FEE_PERCENT_DISPLAY}%)</span><span class="val">− $${(amount / WTC_PER_USD_DISPLAY - net).toFixed(4)}</span></div>
-                        </div>
-                        <div class="wd2-summary-net">
-                            <span class="lbl">Net you receive</span>
-                            <span class="val">$${net.toFixed(4)}</span>
-                        </div>
-                        <div class="muted" style="font-size:11.5px; line-height:1.6; text-align:center; padding:0 6px;">Your request goes to our team for review. Paid out once approved — you can track it any time from your profile.</div>
-                    </div>
-
-                    <div style="display:flex; gap:10px; margin-top:14px; position:relative; z-index:1;">
-                        <button class="btn btn-outline" id="wd2-back" style="flex:1;">Back</button>
-                        <button class="btn btn-primary" id="wd2-confirm" style="flex:2; background:linear-gradient(100deg, var(--signal), #A855F7 130%);">Confirm &amp; Submit</button>
-                    </div>
-                </div>
-            </div>`;
-
-        document.getElementById('wd2-back').onclick = renderStep1;
-        document.getElementById('wd2-confirm').onclick = submitWithdraw;
-    }
-
-    // ── STEP 3 — Success ──────────────────────────────────────
-    function renderStep3(netUsd) {
-        document.getElementById('modal-root').innerHTML = `
-            <div class="overlay" onclick="if(event.target===this)this.remove()">
-                <div class="sheet anim-in" style="text-align:center; position:relative; overflow:hidden;">
-                    <div class="jg-glow" style="opacity:0.5;"></div>
-                    <div class="sheet-handle" style="position:relative; z-index:1;"></div>
-                    ${wd2StepsHtml(3)}
-                    <div style="position:relative; z-index:1;">
-                        <div class="wd2-success-badge">
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--money)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                        </div>
-                        <div class="section-title" style="margin-bottom:8px;">Request submitted</div>
-                        <div class="muted" style="font-size:13px; line-height:1.6; margin-bottom:18px;">You'll receive <b style="color:var(--money);">$${netUsd.toFixed(4)}</b> once it's approved. We'll notify you here.</div>
-                        <button class="btn btn-primary" id="wd2-done" style="width:100%; background:linear-gradient(100deg, var(--signal), #A855F7 130%);">Done</button>
-                    </div>
-                </div>
-            </div>`;
-        document.getElementById('wd2-done').onclick = () => { document.getElementById('modal-root').innerHTML = ''; };
+        btn.textContent = `Withdraw ${fmtWTC(wtc)} NC`;
     }
 
     async function loadStatus() {
         const r = await apiGet(`withdraw?action=status&initData=${encodeURIComponent(TG_INIT_DATA)}`);
         if (!r.ok) {
             loadFailed = true;
-            updateStep1();
-            renderRequirements();
+            updateReceiveAndSubmit();
             return;
         }
         if (r.withdrawalsOpen === false) {
@@ -1949,31 +1714,32 @@ function openWithdrawModal() {
         }
         loadFailed = false;
         status = r;
-        updateStep1();
-        renderRequirements();
+        render();
     }
 
     async function submitWithdraw() {
+        const details = document.getElementById('wd-details').value.trim();
+        const wtcAmount = Math.floor(parseFloat(document.getElementById('wd-amount').value) || 0);
         if (loadFailed) { loadStatus(); return; }
         if (!details) return toast('Please enter your address/UID.', 'error');
-        if (!amount) return toast('Please enter an amount.', 'error');
+        if (!wtcAmount) return toast('Please enter an amount.', 'error');
 
-        const btn = document.getElementById('wd2-confirm');
+        const btn = document.getElementById('wd-submit');
         btn.textContent = 'Submitting...'; btn.disabled = true;
-        const r = await apiPost('withdraw', { method, details, wtcAmount: amount });
+        const r = await apiPost('withdraw', { method, details, wtcAmount });
         if (r.ok) {
+            toast('Withdraw request submitted — you\'ll be paid once approved.', 'success');
             triggerBurst(btn);
+            setTimeout(() => { document.getElementById('modal-root').innerHTML = ''; }, 200);
             await refreshUser();
             if (state.activeTab === 'home') renderHome();
-            renderStep3(r.netUsd ?? calcNetUsdDisplay(amount));
         } else {
             toast(r.message || errorText(r.error), 'error');
-            btn.textContent = 'Confirm & Submit'; btn.disabled = false;
             await loadStatus();
         }
     }
 
-    renderStep1();
+    render();
     loadStatus();
 }
 
@@ -1992,7 +1758,7 @@ function openPromoModal() {
             <div class="sheet anim-in">
                 <div class="sheet-handle"></div>
                 <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Promo code</div>
-                <div class="muted" style="font-size:13px; margin-bottom:16px;">Redeem a code for extra CN.</div>
+                <div class="muted" style="font-size:13px; margin-bottom:16px;">Redeem a code for extra NC.</div>
                 <input class="field-input" id="promo-code" placeholder="Enter 6-digit code" style="text-align:center; font-family:var(--font-display); font-size:18px; letter-spacing:3px;">
                 <button class="btn btn-primary" style="margin-top:16px;" id="promo-submit">Redeem</button>
             </div>
@@ -2020,7 +1786,7 @@ function renderEarningTab() {
             <div class="card" style="text-align:center; padding:36px 16px;">
                 <div style="font-size:32px; margin-bottom:8px;">🚧</div>
                 <div style="font-weight:600; font-size:14px;">Coming soon</div>
-                <div class="muted" style="font-size:12px; margin-top:4px;">Check back later for new ways to earn CN.</div>
+                <div class="muted" style="font-size:12px; margin-top:4px;">Check back later for new ways to earn NC.</div>
             </div>
         </div>`;
 }
@@ -2029,27 +1795,25 @@ function renderEarningTab() {
 // TASK SECTION
 // ══════════════════════════════════════════════════════════════
 async function renderTaskTab() {
-    // ⚠️ UPDATED — Daily-task system removed entirely per request; Task
-    // section now only shows Exclusive / Partner / Earning categories.
+    // ⚠️ UPDATED (this update) — Tasks/Faucet subnav replaced. Faucet tasks
+    // are gone; the Task section now mirrors the admin panel's 5 task types
+    // exactly: Daily / Exclusive / Partner / Earning / Verify (channel join).
     const TASK_TABS = [
+        { id: 'daily', label: '📅 Daily' },
         { id: 'exclusive', label: '⭐ Exclusive' },
         { id: 'partner', label: '🤝 Partner' },
         { id: 'earning', label: '👥 Earning' },
     ];
-    if (!state.taskSubTab || !TASK_TABS.some(t => t.id === state.taskSubTab)) state.taskSubTab = 'exclusive';
+    if (!state.taskSubTab || !TASK_TABS.some(t => t.id === state.taskSubTab)) state.taskSubTab = 'daily';
     const root = document.getElementById('tab-content');
-    const doneToday = state.user?.tasksCompletedToday || 0;
     root.innerHTML = `
-        <div class="section-pad anim-in" style="margin-top:18px;">
-            <div class="section-title" style="margin-bottom:4px;">Complete tasks, earn CN</div>
-            <div class="muted" style="font-size:12.5px; margin-bottom:14px;">✅ ${doneToday} completed today — keep the streak going!</div>
+        <div class="section-pad" style="margin-top:18px;">
+            <div class="section-title" style="margin-bottom:14px;">Complete tasks, earn NC</div>
             <div class="subnav-scroll">
                 ${TASK_TABS.map(t => `<button class="subnav-btn ${state.taskSubTab === t.id ? 'active' : ''}" data-subtab="${t.id}">${t.label}</button>`).join('')}
             </div>
             <div style="display:flex; flex-direction:column; gap:10px;" id="task-page-list">
-                <div class="skel" style="height:78px; border-radius:16px;"></div>
-                <div class="skel" style="height:78px; border-radius:16px;"></div>
-                <div class="skel" style="height:78px; border-radius:16px;"></div>
+                <div class="muted" style="text-align:center; padding:20px 0;">Loading...</div>
             </div>
         </div>`;
 
@@ -2069,14 +1833,10 @@ async function renderTaskTab() {
     const items = state.tasks.filter(t => !done.has(t._id) && (t.category || 'partner') === state.taskSubTab);
 
     if (!items.length) {
-        listEl.innerHTML = `
-            <div class="anim-in" style="text-align:center; padding:34px 0 18px;">
-                <div style="font-size:38px; margin-bottom:10px;">🍃</div>
-                <div class="muted" style="font-size:13px;">No tasks in this category right now.<br>Check back later!</div>
-            </div>`;
+        listEl.innerHTML = `<div class="muted" style="text-align:center; padding:20px 0;">No tasks in this category right now — check back later.</div>`;
         return;
     }
-    listEl.innerHTML = items.map((t, i) => taskCardHtml(t, i)).join('');
+    listEl.innerHTML = items.map(t => taskCardHtml(t)).join('');
     listEl.querySelectorAll('button[data-task]').forEach(btn => { btn.onclick = () => goToTask(btn.dataset.task, btn.dataset.url, btn.dataset.category, btn.dataset.verify); });
 }
 
@@ -2090,7 +1850,7 @@ const TASK_CATEGORY_META = {
     earning:   { icon: '👥', badge: 'Earning',     hue: 'var(--earning-hue)',   hueSoft: 'var(--earning-soft)' },
 };
 
-function taskCardHtml(t, i = 0) {
+function taskCardHtml(t) {
     const cat = t.category || 'partner';
     const m = TASK_CATEGORY_META[cat] || TASK_CATEGORY_META.partner;
     // ⚠️ NEW (this update) — verifyType is now independent of category (any
@@ -2099,13 +1859,13 @@ function taskCardHtml(t, i = 0) {
     // field existed.
     const verifyType = t.verifyType || (cat === 'channel' ? 'api' : 'link');
     // daily tasks priced in USDT show the USDT figure as the headline reward
-    // (with CN as the small unit label swapped for "USDT") — the actual
+    // (with NC as the small unit label swapped for "USDT") — the actual
     // credited amount is still rewardWtc under the hood, this is display-only.
     const isUsdt = t.rewardCurrency === 'usdt';
     const rewardAmount = isUsdt ? (t.rewardUsdt ?? 0) : (t.rewardWtc || 0);
-    const rewardUnit = isUsdt ? 'USDT' : 'CN';
+    const rewardUnit = isUsdt ? 'USDT' : 'NC';
     return `
-    <div class="card task-card-big" data-task-card="${t._id}" style="opacity:0; animation: rise-in 0.4s ease ${Math.min(i * 0.06, 0.36)}s forwards;">
+    <div class="card task-card-big" data-task-card="${t._id}">
         <div class="tc-icon" style="background:${m.hueSoft}; border-color:${m.hueSoft};">${m.icon}</div>
         <div style="flex:1; min-width:0;">
             <span class="pill" style="background:${m.hueSoft}; color:${m.hue}; margin-bottom:6px;">${m.badge}</span>
@@ -2203,9 +1963,9 @@ async function completeTask(taskId, taskToken) {
     const r = await apiPost('earn', { action: 'taskComplete', taskId, startTime: taskToken?.startTime, signature: taskToken?.signature });
     document.getElementById('modal-root').innerHTML = ''; // close sheet
     if (r.ok) {
-        toast(`+${r.rewardWtc} CN added!`, 'success');
+        toast(`+${r.rewardWtc} NC added!`, 'success');
         triggerBurst(document.querySelector(`button[data-task="${taskId}"]`) || document.body);
-        showCongrats(`+${r.rewardWtc} CN`, '✅');
+        showCongrats(`+${r.rewardWtc} NC`, '✅');
         await refreshUser();
 
         // ── Vanishes the completed task's card with an animation, then refreshes the list ──
@@ -2228,183 +1988,121 @@ async function completeTask(taskId, taskToken) {
 
 // ══════════════════════════════════════════════════════════════
 // REFER SECTION
-// ⚠️ REDESIGNED (this update) — the whole "Friends" tab was rebuilt to a
-// new professional layout/color-language (references supplied by the
-// client): a "Friends & Earn" hero card with a stacked link box + dual
-// share/copy actions, a Total-Referrals / Referral-Earnings pair with
-// icon avatars, a dedicated "Lifetime Commission" split card, a quick
-// 3-step "How it works" strip, then the existing detailed 4-step bonus
-// breakdown (now icon-badged instead of bare numbers) and the "when is a
-// referral valid" note. Every dynamic value/binding from the old version
-// (referralCount, referralWtcEarned, referralCommissionEarned, the
-// share/copy handlers) is preserved 1:1 — only the markup/visuals changed.
 // ══════════════════════════════════════════════════════════════
 function renderReferTab() {
     const root = document.getElementById('tab-content');
     const u = state.user || {};
     const link = `${MINI_APP_BASE}?startapp=${USER_ID}`;
-    const STEP_BONUSES = { join: 30, tasks: 100, ads: 180 };
-    const totalBonus = STEP_BONUSES.join + STEP_BONUSES.tasks + STEP_BONUSES.ads;
-
-    // small reusable bits so the icon-circle / chevron markup below stays
-    // consistent instead of being retyped with slightly different values
-    // each time.
-    const iconCircle = (emoji, bg, fg, size = 40) => `
-        <div style="width:${size}px; height:${size}px; flex-shrink:0; border-radius:50%; background:${bg}; color:${fg}; display:flex; align-items:center; justify-content:center; font-size:${Math.round(size * 0.46)}px; box-shadow:0 0 0 1px ${bg} inset, 0 4px 12px rgba(0,0,0,0.25);">${emoji}</div>`;
-    const chevron = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-faint); flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>`;
 
     root.innerHTML = `
         <div class="section-pad anim-in" style="margin-top:18px;">
-
-            <!-- ═══ HERO — Friends & Earn ═══ -->
-            <div class="card" style="position:relative; overflow:hidden; padding:22px 20px 20px; border-color:rgba(61,255,122,0.35); background:linear-gradient(160deg, rgba(19,46,28,0.88), var(--surface) 72%);">
+            <div class="card" style="position:relative; overflow:hidden; text-align:center; padding:26px 18px 22px; border-color:rgba(139,92,246,0.35); border-image: linear-gradient(140deg, rgba(79,209,245,0.45), rgba(139,92,246,0.4)) 1;">
                 <div style="position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;">
-                    <div style="position:absolute; width:200px; height:200px; border-radius:50%; filter:blur(50px); opacity:0.35; background:var(--accent); top:-80px; right:-60px; animation:jg-glow-drift 6s ease-in-out infinite;"></div>
-                    <div style="position:absolute; width:160px; height:160px; border-radius:50%; filter:blur(46px); opacity:0.3; background:var(--coin); bottom:-70px; left:-40px; animation:jg-glow-drift 6s ease-in-out infinite 1.4s;"></div>
+                    <div style="position:absolute; width:180px; height:180px; border-radius:50%; filter:blur(46px); opacity:0.35; background:#8B5CF6; top:-70px; left:-40px; animation:jg-glow-drift 6s ease-in-out infinite;"></div>
+                    <div style="position:absolute; width:150px; height:150px; border-radius:50%; filter:blur(46px); opacity:0.3; background:#4FD1F5; bottom:-70px; right:-30px; animation:jg-glow-drift 6s ease-in-out infinite 1.4s;"></div>
                 </div>
                 <div style="position:relative; z-index:1;">
-                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:16px;">
-                        <div>
-                            <div style="font-family:var(--font-display); font-weight:700; font-size:19px;">Friends &amp; Earn</div>
-                            <div class="muted" style="font-size:12px; margin-top:3px;">Invite friends and earn together 🍀</div>
-                        </div>
-                        <div style="width:52px; height:52px; flex-shrink:0; border-radius:16px; background:radial-gradient(circle at 35% 30%, #1E5A34, #0B2016 78%); border:1px solid rgba(61,255,122,0.4); box-shadow:0 6px 18px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.12), 0 0 16px rgba(61,255,122,0.25); display:flex; align-items:center; justify-content:center; font-size:26px; filter:drop-shadow(0 0 8px rgba(61,255,122,0.5));">🍀</div>
+                    <div style="width:60px; height:44px; margin:0 auto 14px; position:relative;">
+                        <div style="position:absolute; left:0; top:4px; width:36px; height:36px; border-radius:50%; background:linear-gradient(155deg, #4FD1F5, #2178A8); box-shadow:0 6px 14px rgba(79,209,245,0.35), inset 0 1px 1px rgba(255,255,255,0.35);"></div>
+                        <div style="position:absolute; right:0; top:0; width:36px; height:36px; border-radius:50%; background:linear-gradient(155deg, #A78BFA, #6D3FC9); box-shadow:0 6px 14px rgba(167,139,250,0.4), inset 0 1px 1px rgba(255,255,255,0.35);"></div>
+                        <div style="position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); width:18px; height:18px; border-radius:5px; background:linear-gradient(155deg, var(--coin), var(--coin-deep)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:9px; color:#0A0F0C; box-shadow:0 0 8px var(--coin-soft);">N</div>
                     </div>
-
-                    <div class="muted" style="font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;">You earn</div>
-                    <div style="font-family:var(--font-display); font-weight:700; font-size:36px; margin:3px 0 10px; background:linear-gradient(90deg, var(--coin), var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 20px rgba(61,255,122,0.2);">${totalBonus} <span style="font-size:15px; color:var(--ink-muted); font-weight:500; -webkit-text-fill-color:var(--ink-muted);">CN</span></div>
-                    <div class="pill" style="background:var(--accent-soft); color:var(--accent); margin-bottom:18px;">⭐ +10% of your friend's withdrawals — forever</div>
-
-                    <div class="muted" style="font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px;">Your referral link</div>
-                    <div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:12px; padding:12px; font-size:11.5px; word-break:break-all; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <div class="muted" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase;">Total bonus per friend</div>
+                    <div style="font-family:var(--font-display); font-weight:700; font-size:38px; margin:4px 0 2px; background:linear-gradient(90deg, var(--coin), #F5B942); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 20px rgba(0,245,212,0.25);">310 <span style="font-size:16px; color:var(--ink-muted); font-weight:500; -webkit-text-fill-color:var(--ink-muted);">NC</span></div>
+                    <div class="pill" style="background:rgba(79,163,247,0.14); color:#4FA3F7; margin-bottom:18px;">💰 + 10% of everything they withdraw, forever</div>
+                    <div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:12px; padding:12px; font-size:12px; word-break:break-all; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                         <span style="flex:1; text-align:left;">${link}</span>
-                        <button id="refer-copy-inline" style="flex-shrink:0; width:28px; height:28px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface-pop); color:var(--ink-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <button id="refer-copy-inline" style="flex-shrink:0; width:26px; height:26px; border-radius:7px; border:0.5px solid var(--border-strong); background:var(--surface-pop); color:var(--ink-muted); display:flex; align-items:center; justify-content:center; cursor:pointer;">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
                         </button>
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <button class="btn btn-primary" id="refer-share" style="background:linear-gradient(100deg, var(--coin), var(--accent) 130%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 8px 20px rgba(61,255,122,0.25);">🔗 Share Link</button>
-                        <button class="btn btn-outline" id="refer-copy">📋 Copy Link</button>
+                        <button class="btn btn-primary" id="refer-share" style="background:linear-gradient(100deg, var(--coin), #8B5CF6 130%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 8px 20px rgba(139,92,246,0.25);">🔗 Share Now</button>
+                        <button class="btn btn-outline" id="refer-copy">Copy Link</button>
                     </div>
                 </div>
             </div>
 
-            <!-- ═══ Total Referrals / Referral Earnings ═══ -->
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-                <div class="card" style="padding:14px 15px; display:flex; align-items:center; gap:10px;">
-                    ${iconCircle('👥', 'var(--accent-soft)', 'var(--accent)')}
-                    <div style="flex:1; min-width:0;">
-                        <div class="muted" style="font-size:11.5px; margin-bottom:2px;">Total Referrals</div>
-                        <div style="font-family:var(--font-display); font-weight:700; font-size:19px;">${u.referralCount || 0} <span class="muted" style="font-size:11px; font-weight:500;">Friends</span></div>
-                    </div>
-                    ${chevron}
+                <div class="card" style="padding:14px 15px;">
+                    <div class="muted" style="font-size:12px; margin-bottom:4px;">Total referrals</div>
+                    <div style="font-family:var(--font-display); font-weight:700; font-size:20px; color:#4FA3F7;">${u.referralCount || 0}</div>
                 </div>
-                <div class="card" style="padding:14px 15px; display:flex; align-items:center; gap:10px;">
-                    ${iconCircle('💼', 'var(--coin-soft)', 'var(--coin)')}
-                    <div style="flex:1; min-width:0;">
-                        <div class="muted" style="font-size:11.5px; margin-bottom:2px;">Referral Earnings</div>
-                        <div style="font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--coin);">${fmtWTC(u.referralWtcEarned || 0)}<span class="muted" style="font-size:11px; font-weight:500;"> CN</span></div>
-                        <div class="muted mono-num" style="font-size:10px; margin-top:1px;">≈ $${wtcToUsd(u.referralWtcEarned || 0)} USD</div>
-                    </div>
+                <div class="card" style="padding:14px 15px;">
+                    <div class="muted" style="font-size:12px; margin-bottom:4px;">Referral earnings</div>
+                    <div style="font-family:var(--font-display); font-weight:700; font-size:20px; color:var(--coin);">${fmtWTC(u.referralWtcEarned || 0)}<span style="font-size:11px; color:var(--ink-muted); font-weight:500;"> NC</span></div>
+                    <div class="muted mono-num" style="font-size:11px; margin-top:2px;">≈ $${wtcToUsd(u.referralWtcEarned || 0)} USD</div>
                 </div>
             </div>
 
-            <!-- ═══ Lifetime Commission ═══ -->
-            <div class="card" style="margin-top:10px; padding:16px 17px; display:flex; align-items:center; gap:14px; border-color:rgba(124,60,255,0.28);">
-                ${iconCircle('💎', 'var(--signal-soft)', 'var(--signal)', 44)}
-                <div style="flex:1; min-width:0;">
-                    <div class="muted" style="font-size:11px; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:2px;">Lifetime Commission</div>
-                    <div style="font-family:var(--font-display); font-weight:700; font-size:24px; color:var(--signal); line-height:1.1;">10%</div>
-                    <div class="muted" style="font-size:11px; line-height:1.4; margin-top:2px;">Earn 10% from every withdrawal made by your referrals.</div>
+            <div class="card" style="margin-top:10px; padding:14px 15px; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div class="muted" style="font-size:12px; margin-bottom:2px; color:#EC4899;">🎟 Lucky tickets</div>
+                    <div class="muted" style="font-size:11px;">1 earned per verified referral — spend them on 🎰 777.</div>
                 </div>
-                <div style="text-align:right; flex-shrink:0; border-left:0.5px solid var(--border); padding-left:14px;">
-                    <div class="muted" style="font-size:10px; text-transform:uppercase; letter-spacing:0.04em;">Total Earned</div>
-                    <div style="font-family:var(--font-display); font-weight:700; font-size:17px; color:var(--coin); margin-top:2px;">${fmtWTC(u.referralCommissionEarned || 0)} <span style="font-size:10.5px; color:var(--ink-muted); font-weight:500;">CN</span></div>
-                    <div class="muted mono-num" style="font-size:10px; margin-top:1px;">≈ $${wtcToUsd(u.referralCommissionEarned || 0)} USD</div>
+                <div style="font-family:var(--font-display); font-weight:700; font-size:22px; color:#EC4899;">${u.luckyTickets || 0}</div>
+            </div>
+
+            <div class="card" style="margin-top:10px; padding:14px 15px; display:flex; align-items:center; justify-content:space-between; border-color:rgba(0,245,212,0.3);">
+                <div>
+                    <div class="muted" style="font-size:12px; margin-bottom:2px; color:var(--coin);">💰 Withdrawal commission</div>
+                    <div class="muted" style="font-size:11px;">10% of every withdrawal your referrals make — for as long as they keep withdrawing.</div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:10px;">
+                    <div style="font-family:var(--font-display); font-weight:700; font-size:18px; color:var(--coin);">${fmtWTC(u.referralCommissionEarned || 0)}</div>
+                    <div class="muted mono-num" style="font-size:10.5px;">≈ $${wtcToUsd(u.referralCommissionEarned || 0)} USD</div>
                 </div>
             </div>
 
-            <!-- ═══ How it works (quick 3-step) ═══ -->
-            <div class="card" style="margin-top:14px; padding:16px 15px 14px;">
-                <div style="font-weight:600; font-size:13.5px; display:flex; align-items:center; gap:6px; margin-bottom:14px;">🍀 How it works</div>
-                <div style="display:flex; align-items:flex-start; gap:2px;">
-                    <div style="flex:1; text-align:center; min-width:0;">
-                        <div style="width:38px; height:38px; margin:0 auto 8px; border-radius:12px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:17px; position:relative;">
-                            👤<span style="position:absolute; top:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:var(--accent); color:#04120B; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;">1</span>
-                        </div>
-                        <div style="font-size:11.5px; font-weight:600;">Invite Friends</div>
-                        <div class="muted" style="font-size:10px; line-height:1.35; margin-top:2px;">Share your link and invite friends</div>
-                    </div>
-                    <div style="padding-top:14px; color:var(--ink-faint); flex-shrink:0;">${chevron}</div>
-                    <div style="flex:1; text-align:center; min-width:0;">
-                        <div style="width:38px; height:38px; margin:0 auto 8px; border-radius:12px; background:var(--coin-soft); color:var(--coin); display:flex; align-items:center; justify-content:center; font-size:17px; position:relative;">
-                            📋<span style="position:absolute; top:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:var(--coin); color:#04120B; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;">2</span>
-                        </div>
-                        <div style="font-size:11.5px; font-weight:600;">They Complete Tasks</div>
-                        <div class="muted" style="font-size:10px; line-height:1.35; margin-top:2px;">Your friends complete tasks and earn</div>
-                    </div>
-                    <div style="padding-top:14px; color:var(--ink-faint); flex-shrink:0;">${chevron}</div>
-                    <div style="flex:1; text-align:center; min-width:0;">
-                        <div style="width:38px; height:38px; margin:0 auto 8px; border-radius:12px; background:var(--signal-soft); color:var(--signal); display:flex; align-items:center; justify-content:center; font-size:17px; position:relative;">
-                            🪙<span style="position:absolute; top:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:var(--signal); color:#F4F8FF; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;">3</span>
-                        </div>
-                        <div style="font-size:11.5px; font-weight:600;">You Earn CN</div>
-                        <div class="muted" style="font-size:10px; line-height:1.35; margin-top:2px;">You earn CN and 10% forever</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ Detailed breakdown ═══ -->
             <div class="section-title" style="margin:22px 0 12px;">How the bonus works</div>
             <div class="card" style="padding:6px 16px;">
-                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:0.5px solid var(--border);">
-                    ${iconCircle('💬', 'rgba(167,139,250,0.16)', '#A78BFA', 34)}
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:0.5px solid var(--border);">
+                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(167,139,250,0.16); color:#A78BFA; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px; box-shadow:0 0 10px rgba(167,139,250,0.2);">1</div>
                     <div style="flex:1;">
                         <div style="font-size:13px; font-weight:500;">Friend joins channel + community and verifies</div>
                     </div>
-                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+${STEP_BONUSES.join}</div>
+                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+30</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:0.5px solid var(--border);">
-                    ${iconCircle('📋', 'rgba(167,139,250,0.16)', '#A78BFA', 34)}
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:0.5px solid var(--border);">
+                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(167,139,250,0.16); color:#A78BFA; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px; box-shadow:0 0 10px rgba(167,139,250,0.2);">2</div>
                     <div style="flex:1;">
                         <div style="font-size:13px; font-weight:500;">Friend completes 5 tasks</div>
                     </div>
-                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+${STEP_BONUSES.tasks}</div>
+                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+100</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:0.5px solid var(--border);">
-                    ${iconCircle('▶️', 'rgba(167,139,250,0.16)', '#A78BFA', 34)}
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:0.5px solid var(--border);">
+                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(167,139,250,0.16); color:#A78BFA; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px; box-shadow:0 0 10px rgba(167,139,250,0.2);">3</div>
                     <div style="flex:1;">
                         <div style="font-size:13px; font-weight:500;">Friend watches 20 ads</div>
                     </div>
-                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+${STEP_BONUSES.ads}</div>
+                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(79,209,245,0.14); color:#4FD1F5;">+180</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:12px 0;">
-                    ${iconCircle('💰', 'var(--coin-soft)', 'var(--coin)', 34)}
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0;">
+                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(0,245,212,0.16); color:var(--coin); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px; box-shadow:0 0 10px rgba(0,245,212,0.2);">💰</div>
                     <div style="flex:1;">
                         <div style="font-size:13px; font-weight:500;">Every time they withdraw, after that</div>
                     </div>
-                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:var(--coin-soft); color:var(--coin);">+10%</div>
+                    <div class="pill" style="font-family:var(--font-display); font-weight:700; background:rgba(0,245,212,0.14); color:var(--coin);">+10%</div>
                 </div>
             </div>
 
-            <!-- ⚠️ Clarifies exactly what makes a referral "valid" (spendable for
-                 your own withdrawals), separate from the 3 bonus-CN steps above —
-                 a referral only becomes VALID once your friend has done BOTH the
-                 tasks and the ads (not just one of the two). -->
-            <div class="card" style="margin-top:14px; padding:14px 15px; display:flex; gap:12px; align-items:flex-start; border-color:var(--signal-soft);">
-                ${iconCircle('🛡️', 'var(--signal-soft)', 'var(--signal)', 30)}
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:12.5px; font-weight:600; color:var(--signal); margin-bottom:4px;">When does a referral become "valid"?</div>
-                    <div class="muted" style="font-size:12px; line-height:1.5;">
-                        A referral counts toward <b>your</b> withdrawals once your friend has completed <b>both</b> — 5 tasks <b>and</b> 20 ads (doesn't matter which order). Joining the channel alone, or just one of the two, isn't enough yet.
-                    </div>
+            <!-- ⚠️ NEW — clarifies exactly what makes a referral "valid" (spendable
+                 for your own withdrawals), separate from the 3 bonus-NC steps
+                 above. Added specifically so users don't confuse "I got my +30/+100/
+                 +180 bonuses" with "I have a valid referral now" — those are two
+                 different things: the bonuses above pay out per-step regardless of
+                 order, but a referral only becomes VALID once your friend has done
+                 BOTH the tasks and the ads (not just one of the two). -->
+            <div class="card" style="margin-top:14px; padding:14px 15px; border-color:var(--signal-soft);">
+                <div style="font-size:12.5px; font-weight:600; color:var(--signal); margin-bottom:4px;">✅ When does a referral become "valid"?</div>
+                <div class="muted" style="font-size:12px; line-height:1.5;">
+                    A referral counts toward <b>your</b> withdrawals once your friend has completed <b>both</b> — 5 tasks <b>and</b> 20 ads (doesn't matter which order). Joining the channel alone, or just one of the two, isn't enough yet.
                 </div>
             </div>
         </div>`;
 
     document.getElementById('refer-share').onclick = () => {
-        const text = encodeURIComponent('🚀 Join Clover Nest! Earn free Nest Coin!');
+        const text = encodeURIComponent('🚀 Join Cast Nest! Earn free Nest Coin!');
         window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
     };
     document.getElementById('refer-copy').onclick = () => { navigator.clipboard.writeText(link); toast('Link copied!', 'success'); };
@@ -2457,7 +2155,7 @@ function showIpInUseScreen(owner) {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7M21 4v5h-5"/></svg> Try again
             </button>
             <button class="btn btn-outline" id="ip-switch-btn" style="max-width:340px; margin-top:10px;">Switch account (resets my balance)</button>
-            <div class="muted" style="font-size:11px; margin-top:14px; max-width:320px; line-height:1.6;">Switching claims this connection for your account but resets your CN and USDT balance to zero.</div>
+            <div class="muted" style="font-size:11px; margin-top:14px; max-width:320px; line-height:1.6;">Switching claims this connection for your account but resets your NC and USDT balance to zero.</div>
         </div>`;
 
     document.getElementById('ip-retry-btn').onclick = () => { location.reload(); };
@@ -2487,7 +2185,7 @@ async function refreshUser() {
         // Ban gate — if user is banned, show ban screen and stop everything
         if (r.user?.isBanned) {
             document.getElementById('app-root').innerHTML = '';
-            const appealUrl = `https://t.me/Clover_nest_bot?start=appeal_${USER_ID}`;
+            const appealUrl = `https://t.me/NewTube12_bot?start=appeal_${USER_ID}`;
             document.getElementById('modal-root').innerHTML = `
                 <div style="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;z-index:999;">
                     <div style="font-size:52px;margin-bottom:20px;">⛔</div>
@@ -2527,7 +2225,7 @@ async function init() {
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; gap:16px; text-align:center; padding:0 30px;">
                 <div style="font-size:48px;">📱</div>
                 <div style="font-family:var(--font-display); font-weight:700; font-size:17px;">Open this in Telegram</div>
-                <div class="muted" style="font-size:13px; line-height:1.6;">CLOVER NEST only works inside the Telegram app. Please open it via the Clover Nest bot.</div>
+                <div class="muted" style="font-size:13px; line-height:1.6;">CAST NEST only works inside the Telegram app. Please open it via the Cast Nest bot.</div>
             </div>`;
         return;
     }
@@ -2592,7 +2290,7 @@ async function generateDeviceFingerprint() {
         const ctx = canvas.getContext('2d');
         canvas.width = 200; canvas.height = 50;
         ctx.textBaseline = 'top'; ctx.font = '14px Arial'; ctx.fillStyle = '#f60'; ctx.fillRect(0, 0, 100, 20);
-        ctx.fillStyle = '#069'; ctx.fillText('CLOVERNEST-fp', 2, 15);
+        ctx.fillStyle = '#069'; ctx.fillText('CASTNEST-fp', 2, 15);
         parts.push(canvas.toDataURL());
         parts.push(screen.width + 'x' + screen.height + 'x' + screen.colorDepth);
         parts.push(navigator.language || '');
