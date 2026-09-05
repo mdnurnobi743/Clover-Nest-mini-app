@@ -11,7 +11,7 @@
 //   GET  /api/user?action=profile&initData=...
 
 import { connectToDatabase } from '../lib/mongodb.js';
-import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD } from '../lib/constants.js';
+import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD, DAILY_FREE_SPINS } from '../lib/constants.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { checkAndRecordFingerprint } from '../lib/fingerprintCheck.js';
 import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, tgSend } from '../lib/telegram.js';
@@ -94,6 +94,7 @@ async function handleInit(req, res, db) {
         lastWithdrawDate: '',
         usedTaskStarts: [],
         tasksCompletedToday: 0,
+        spinsRemaining: DAILY_FREE_SPINS, // ⚠️ NEW — Spin Wheel daily allowance
         lastResetDate: todayBD(),
         welcomeBonusClaimed: false,
         createdAt: new Date(),
