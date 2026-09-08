@@ -17,6 +17,7 @@ import {
     WITHDRAW_METHODS, MIN_WITHDRAW_WTC, WITHDRAW_TASKS_REQUIRED,
     WITHDRAW_VALID_REFERRALS_PER_WITHDRAW, FIRST_WITHDRAW_MAX_WTC,
     WITHDRAW_FEE_PERCENT, WITHDRAW_SECOND_FEE_PERCENT,
+    MIN_WITHDRAW_USDT, FIRST_WITHDRAW_MAX_USDT, WTC_PER_USD,
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
 
@@ -48,8 +49,10 @@ async function handleStatus(req, res, db) {
             met: referralMet,
             isFirstWithdrawFree: isFirstWithdraw,
             firstWithdrawMaxWtc: FIRST_WITHDRAW_MAX_WTC,
+            firstWithdrawMaxUsdt: FIRST_WITHDRAW_MAX_USDT, // ⚠️ NEW — same cap, in already-converted USDT terms
             validReferralsAvailable,
         },
+        minWithdrawUsdt: MIN_WITHDRAW_USDT, // ⚠️ NEW — lets the frontend validate the USDT-source amount without duplicating the constant
     });
 }
 
@@ -82,11 +85,14 @@ async function handleCreate(req, res, db) {
     if (!WITHDRAWALS_OPEN) return res.status(200).json({ ok: false, error: 'withdrawals_closed' });
 
     const { method, details } = req.body;
-    const wtcAmount = Math.floor(Number(req.body.wtcAmount));
+    // ⚠️ NEW — which balance is paying for this withdrawal. Defaults to the
+    // original CN(wtcBalance)-direct path for backward compatibility;
+    // 'usdt' pays out of the ledger that api/convert.js builds up (which,
+    // before this, had no way to ever be spent).
+    const source = req.body.source === 'usdt' ? 'usdt' : 'cn';
 
     if (!WITHDRAW_METHODS[method]) return res.status(400).json({ ok: false, error: 'invalid_method' });
     if (!details || !String(details).trim()) return res.status(400).json({ ok: false, error: 'missing_details' });
-    if (!Number.isFinite(wtcAmount) || wtcAmount < MIN_WITHDRAW_WTC) return res.status(400).json({ ok: false, error: 'below_minimum' });
 
     const users = db.collection('users');
     const user = await users.findOne({ _id: userId });
@@ -94,32 +100,55 @@ async function handleCreate(req, res, db) {
     if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
     if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked', reason: user.accountLockedReason || null });
     if (user.withdrawPending) return res.status(400).json({ ok: false, error: 'withdraw_pending' });
-    if ((user.wtcBalance || 0) < wtcAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
 
     const tasksHave = (user.completedTasks || []).length;
     if (tasksHave < WITHDRAW_TASKS_REQUIRED) return res.status(400).json({ ok: false, error: 'tasks_required' });
 
+    // These anti-abuse gates apply the same way regardless of which balance
+    // is paying out — they're about the ACCOUNT, not the currency.
     const isFirstWithdraw = (user.withdrawalCount || 0) === 0;
-    if (isFirstWithdraw) {
-        if (wtcAmount > FIRST_WITHDRAW_MAX_WTC) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
-    } else {
+    if (!isFirstWithdraw) {
         const validReferralsAvailable = Math.max(0, (user.validReferralCount || 0) - (user.usedValidReferrals || 0));
         if (validReferralsAvailable < WITHDRAW_VALID_REFERRALS_PER_WITHDRAW) {
             return res.status(400).json({ ok: false, error: 'no_valid_referral' });
         }
     }
 
-    // ── net payout math — mirrors index.html's calcNetUsdDisplay() exactly ──
     const methodInfo = WITHDRAW_METHODS[method];
-    const gross = methodInfo.wtcToCurrency(wtcAmount); // gross USD-equivalent
-    const afterFirstFee = gross * (1 - WITHDRAW_FEE_PERCENT / 100);
-    const netUsd = afterFirstFee * (1 - WITHDRAW_SECOND_FEE_PERCENT / 100);
+    let wtcAmount, netUsd, balanceField, deductAmount;
+
+    if (source === 'usdt') {
+        // ── Already-converted USDT ledger — CONVERT_FEE_PERCENT was already
+        // taken once at conversion time (api/convert.js), so it is NOT
+        // charged again here; the ledger value goes out 1:1.
+        const usdtAmount = Number(req.body.usdtAmount);
+        if (!Number.isFinite(usdtAmount) || usdtAmount < MIN_WITHDRAW_USDT) return res.status(400).json({ ok: false, error: 'below_minimum' });
+        if ((user.usdtBalance || 0) < usdtAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
+        if (isFirstWithdraw && usdtAmount > FIRST_WITHDRAW_MAX_USDT) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
+
+        netUsd = usdtAmount;
+        wtcAmount = Math.round(usdtAmount * WTC_PER_USD); // CN-equivalent, kept only for history/admin display consistency
+        balanceField = 'usdtBalance';
+        deductAmount = usdtAmount;
+    } else {
+        wtcAmount = Math.floor(Number(req.body.wtcAmount));
+        if (!Number.isFinite(wtcAmount) || wtcAmount < MIN_WITHDRAW_WTC) return res.status(400).json({ ok: false, error: 'below_minimum' });
+        if ((user.wtcBalance || 0) < wtcAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
+        if (isFirstWithdraw && wtcAmount > FIRST_WITHDRAW_MAX_WTC) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
+
+        // ── net payout math — mirrors index.html's calcNetUsdDisplay() exactly ──
+        const gross = methodInfo.wtcToCurrency(wtcAmount); // gross USD-equivalent
+        const afterFirstFee = gross * (1 - WITHDRAW_FEE_PERCENT / 100);
+        netUsd = afterFirstFee * (1 - WITHDRAW_SECOND_FEE_PERCENT / 100);
+        balanceField = 'wtcBalance';
+        deductAmount = wtcAmount;
+    }
 
     // ── atomically deduct balance + lock (one withdraw at a time) ──
-    const inc = { wtcBalance: -wtcAmount, withdrawalCount: 1 };
+    const inc = { [balanceField]: -deductAmount, withdrawalCount: 1 };
     if (!isFirstWithdraw) inc.usedValidReferrals = 1;
     const claimed = await users.findOneAndUpdate(
-        { _id: userId, wtcBalance: { $gte: wtcAmount }, withdrawPending: { $ne: true } },
+        { _id: userId, [balanceField]: { $gte: deductAmount }, withdrawPending: { $ne: true } },
         { $inc: inc, $set: { withdrawPending: true, lastWithdrawDate: todayBD() } },
         { returnDocument: 'after' }
     );
@@ -133,6 +162,7 @@ async function handleCreate(req, res, db) {
         wtcAmount,
         cashAmount: netUsd,
         currency: methodInfo.currency,
+        source, // 'cn' or 'usdt' — which balance actually paid for this
         status: 'pending',
         referrerId: user.referredBy || null,
         referralConsumed: !isFirstWithdraw,
@@ -145,6 +175,7 @@ async function handleCreate(req, res, db) {
         const text =
             `💸 <b>New Withdrawal Request</b>\n\n` +
             `👤 <code>${userId}</code> (@${user.telegramUsername || '?'})\n` +
+            `🪙 Source: <b>${source === 'usdt' ? 'Converted USDT ledger' : 'CN balance'}</b>\n` +
             `🪙 WTC: <b>${wtcAmount.toLocaleString()}</b>\n` +
             `💰 Amount: <b>${netUsd.toFixed(4)} ${methodInfo.currency}</b>\n` +
             `📤 Method: <b>${methodInfo.label}</b>\n` +
@@ -178,4 +209,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-            }
+}
