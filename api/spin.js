@@ -16,6 +16,7 @@ import { connectToDatabase } from '../lib/mongodb.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { SPIN_SEGMENTS, WTC_PER_USD } from '../lib/constants.js';
+import { applyCors } from '../lib/cors.js';
 
 // Same "flagged accounts earn nothing new until verified" gate used by
 // api/earn.js and api/gift.js — kept consistent across every reward path.
@@ -99,6 +100,7 @@ async function handleSpin(req, res, db, userId) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method_not_allowed' });
 
     const { action } = req.body || {};
