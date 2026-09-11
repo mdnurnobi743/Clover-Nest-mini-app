@@ -18,6 +18,7 @@ import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, tgSend } from '../lib/tele
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { getClientIp, checkDevice, claimDevice, claimDeviceForUser, getOwnerPublicInfo } from '../lib/ipRegistry.js';
+import { applyCors } from '../lib/cors.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
@@ -30,17 +31,21 @@ async function handleInit(req, res, db) {
     const firstName = verified.user.first_name;
     const username = verified.user.username;
     const referrerCode = verified.startParam; // ✅ comes from verified initData — client can't send a different one separately
-    const { fingerprint } = req.body;
+    const { fingerprint, deviceId } = req.body;
 
-    // ── Season 4: device-fingerprint gate (IP kept only as fallback — see
-    // lib/ipRegistry.js), checked on EVERY init (new or returning user)
-    // since the client calls action:init on every app boot. A different
-    // account already owning this device blocks entry outright — the
-    // client shows the "Device Already In Use" screen with the owner's
-    // public info and lets the person log into that account, or force-claim
-    // this device for their own (resets balance).
-    const clientIp = getClientIp(req);
-    const deviceCheck = await checkDevice(db, fingerprint, clientIp, userId);
+    // ── Season 4: device gate, keyed primarily on the client's persisted
+    // deviceId (unique per install, immune to same-phone-model collisions),
+    // falling back to the hardware fingerprint only if no deviceId came
+    // through — see lib/ipRegistry.js header for the full reasoning. Raw IP
+    // is never used to block anymore (kept only for admin logging), so
+    // people sharing a home/office WiFi can never trip this. Checked on
+    // EVERY init (new or returning user) since the client calls action:init
+    // on every app boot. A different account already owning this device
+    // blocks entry outright — the client shows the "Device Already In Use"
+    // screen with the owner's public info and lets the person log into that
+    // account, or force-claim this device for their own (resets balance).
+    const clientIp = getClientIp(req); // logging/context only — never used to gate
+    const deviceCheck = await checkDevice(db, deviceId, fingerprint, userId);
     if (deviceCheck.blocked) {
         const owner = await getOwnerPublicInfo(db, deviceCheck.ownerId);
         return res.status(409).json({ ok: false, error: 'ip_in_use', owner });
@@ -171,7 +176,7 @@ async function handleInit(req, res, db) {
     // only setting multiAccountFlag for later admin review. See that file
     // for the full reasoning/trade-off note. The ORIGINAL (first) account on
     // that device is never touched by this — only the newly-created one.
-    const fpResult = await checkAndRecordFingerprint(db, userId, fingerprint);
+    const fpResult = await checkAndRecordFingerprint(db, userId, fingerprint, deviceId);
     return res.status(200).json({ ok: true, created: true, multiAccountFlagged: fpResult.flagged });
 }
 
@@ -186,7 +191,7 @@ async function handleSwitchAccount(req, res, db) {
     const verified = verifyTelegramInitData(initData);
     if (!verified.ok) return res.status(401).json({ ok: false, error: 'unauthorized', reason: verified.error });
     const userId = String(verified.user.id);
-    const { fingerprint } = req.body;
+    const { fingerprint, deviceId } = req.body;
 
     const stillBanned = await db.collection('bannedTelegramIds').findOne({ _id: userId });
     if (stillBanned) return res.status(403).json({ ok: false, error: 'banned' });
@@ -194,8 +199,12 @@ async function handleSwitchAccount(req, res, db) {
     const existing = await db.collection('users').findOne({ _id: userId });
     if (!existing) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
-    const clientIp = getClientIp(req);
-    const key = fingerprint && fingerprint.length >= 16 ? fingerprint : `ip:${clientIp}`;
+    // Same key precedence as checkDevice — deviceId first, fingerprint as
+    // fallback, never raw IP (see lib/ipRegistry.js header).
+    const key =
+        deviceId && deviceId.length >= 16 ? `device:${deviceId}` :
+        fingerprint && fingerprint.length >= 16 ? `fp:${fingerprint}` :
+        null;
     await claimDeviceForUser(db, key, userId);
     return res.status(200).json({ ok: true, switched: true });
 }
@@ -250,6 +259,7 @@ async function handleProfile(req, res, db) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     const { db } = await connectToDatabase();
 
     if (req.method === 'POST') {
