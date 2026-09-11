@@ -11,8 +11,10 @@
 import { connectToDatabase } from '../lib/mongodb.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { MIN_CONVERT_WTC, CONVERT_FEE_PERCENT, WTC_PER_USD } from '../lib/constants.js';
+import { applyCors } from '../lib/cors.js';
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, error: 'method_not_allowed' });
     }
