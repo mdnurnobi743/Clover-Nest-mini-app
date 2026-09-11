@@ -5,6 +5,7 @@
 //   GET /api/data?type=recentWithdrawals   (Home-এ "social proof" ticker-এর জন্য — সত্যিকারের approved withdraw, username মাস্ক করা)
 
 import { connectToDatabase } from '../lib/mongodb.js';
+import { applyCors } from '../lib/cors.js';
 
 // প্রাইভেসির জন্য username আংশিক মাস্ক করা হয় — যেমন "Rashu_Xansi" → "Ras***si"
 function maskUsername(name) {
@@ -14,6 +15,7 @@ function maskUsername(name) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     if (req.method !== 'GET') {
         return res.status(405).json({ ok: false, error: 'method_not_allowed' });
     }
