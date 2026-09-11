@@ -9,6 +9,7 @@
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../lib/mongodb.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
+import { applyCors } from '../lib/cors.js';
 
 async function handleCheck(req, res, db) {
     res.setHeader('Cache-Control', 'no-store, max-age=0');
@@ -54,6 +55,7 @@ async function handleClaim(req, res, db) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     const { db } = await connectToDatabase();
 
     if (req.method === 'GET') {
