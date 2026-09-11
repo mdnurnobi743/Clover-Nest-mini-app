@@ -21,6 +21,7 @@ import { ensureDailyReset } from '../lib/dailyReset.js';
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { TASK_MIN_WAIT_SECONDS } from '../lib/constants.js';
+import { applyCors } from '../lib/cors.js';
 
 const SECRET = process.env.TASK_SIGNING_SECRET;
 
@@ -195,6 +196,7 @@ async function handleClaimPromo(req, res, db, userId) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method_not_allowed' });
 
     const { action } = req.body || {};
