@@ -20,6 +20,7 @@ import {
     MIN_WITHDRAW_USDT, FIRST_WITHDRAW_MAX_USDT, WTC_PER_USD,
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
+import { applyCors } from '../lib/cors.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
@@ -195,6 +196,7 @@ async function handleCreate(req, res, db) {
 }
 
 export default async function handler(req, res) {
+    if (applyCors(req, res)) return;
     const { db } = await connectToDatabase();
 
     if (req.method === 'GET') {
