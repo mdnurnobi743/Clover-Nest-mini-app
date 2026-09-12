@@ -1,22 +1,21 @@
-// api/withdraw.js — Season 4 single-step withdraw/convert: a user types a
-// WTC (CN) amount (minimum MIN_WITHDRAW_WTC) and submits directly. A single
-// WITHDRAW_FEE_PERCENT convert fee is taken (WITHDRAW_SECOND_FEE_PERCENT is
-// kept at 0 — see lib/constants.js for the full spec and the exact math). The first
+// api/withdraw.js — pays out exclusively from the already-converted USDT
+// ledger (built up by api/convert.js). A user submits a USDT amount
+// (minimum MIN_WITHDRAW_USDT) plus a payout method/address. The first
 // withdrawal a user ever makes is free (no referral needed, capped at
-// FIRST_WITHDRAW_MAX_WTC); every one after that spends exactly one "valid"
-// referral (lib/referral.js).
+// FIRST_WITHDRAW_MAX_USDT); every one after that spends exactly one "valid"
+// referral (lib/referral.js). No fee is charged here — the convert fee was
+// already taken once when the CN was converted into this ledger.
 //
 //   GET  /api/withdraw?action=status&initData=...
 //   GET  /api/withdraw?action=history&initData=...
-//   POST /api/withdraw   body: { initData, method, details, wtcAmount }
+//   POST /api/withdraw   body: { initData, method, details, usdtAmount }
 
 import { connectToDatabase } from '../lib/mongodb.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { tgSend } from '../lib/telegram.js';
 import {
-    WITHDRAW_METHODS, MIN_WITHDRAW_WTC, WITHDRAW_TASKS_REQUIRED,
+    WITHDRAW_METHODS, WITHDRAW_TASKS_REQUIRED,
     WITHDRAW_VALID_REFERRALS_PER_WITHDRAW, FIRST_WITHDRAW_MAX_WTC,
-    WITHDRAW_FEE_PERCENT, WITHDRAW_SECOND_FEE_PERCENT,
     MIN_WITHDRAW_USDT, FIRST_WITHDRAW_MAX_USDT, WTC_PER_USD,
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
@@ -86,11 +85,14 @@ async function handleCreate(req, res, db) {
     if (!WITHDRAWALS_OPEN) return res.status(200).json({ ok: false, error: 'withdrawals_closed' });
 
     const { method, details } = req.body;
-    // ⚠️ NEW — which balance is paying for this withdrawal. Defaults to the
-    // original CN(wtcBalance)-direct path for backward compatibility;
-    // 'usdt' pays out of the ledger that api/convert.js builds up (which,
-    // before this, had no way to ever be spent).
-    const source = req.body.source === 'usdt' ? 'usdt' : 'cn';
+    // Withdraw now pays exclusively out of the already-converted USDT
+    // ledger (api/convert.js). The original direct CN(wtcBalance)-withdraw
+    // path is intentionally no longer accepted — Convert already covers
+    // "turn CN into USDT", so this endpoint only ever pays out USDT now.
+    if (req.body.source && req.body.source !== 'usdt') {
+        return res.status(400).json({ ok: false, error: 'invalid_source' });
+    }
+    const source = 'usdt';
 
     if (!WITHDRAW_METHODS[method]) return res.status(400).json({ ok: false, error: 'invalid_method' });
     if (!details || !String(details).trim()) return res.status(400).json({ ok: false, error: 'missing_details' });
@@ -116,34 +118,19 @@ async function handleCreate(req, res, db) {
     }
 
     const methodInfo = WITHDRAW_METHODS[method];
-    let wtcAmount, netUsd, balanceField, deductAmount;
 
-    if (source === 'usdt') {
-        // ── Already-converted USDT ledger — CONVERT_FEE_PERCENT was already
-        // taken once at conversion time (api/convert.js), so it is NOT
-        // charged again here; the ledger value goes out 1:1.
-        const usdtAmount = Number(req.body.usdtAmount);
-        if (!Number.isFinite(usdtAmount) || usdtAmount < MIN_WITHDRAW_USDT) return res.status(400).json({ ok: false, error: 'below_minimum' });
-        if ((user.usdtBalance || 0) < usdtAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
-        if (isFirstWithdraw && usdtAmount > FIRST_WITHDRAW_MAX_USDT) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
+    // ── Already-converted USDT ledger — CONVERT_FEE_PERCENT was already
+    // taken once at conversion time (api/convert.js), so it is NOT
+    // charged again here; the ledger value goes out 1:1.
+    const usdtAmount = Number(req.body.usdtAmount);
+    if (!Number.isFinite(usdtAmount) || usdtAmount < MIN_WITHDRAW_USDT) return res.status(400).json({ ok: false, error: 'below_minimum' });
+    if ((user.usdtBalance || 0) < usdtAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
+    if (isFirstWithdraw && usdtAmount > FIRST_WITHDRAW_MAX_USDT) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
 
-        netUsd = usdtAmount;
-        wtcAmount = Math.round(usdtAmount * WTC_PER_USD); // CN-equivalent, kept only for history/admin display consistency
-        balanceField = 'usdtBalance';
-        deductAmount = usdtAmount;
-    } else {
-        wtcAmount = Math.floor(Number(req.body.wtcAmount));
-        if (!Number.isFinite(wtcAmount) || wtcAmount < MIN_WITHDRAW_WTC) return res.status(400).json({ ok: false, error: 'below_minimum' });
-        if ((user.wtcBalance || 0) < wtcAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
-        if (isFirstWithdraw && wtcAmount > FIRST_WITHDRAW_MAX_WTC) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
-
-        // ── net payout math — mirrors index.html's calcNetUsdDisplay() exactly ──
-        const gross = methodInfo.wtcToCurrency(wtcAmount); // gross USD-equivalent
-        const afterFirstFee = gross * (1 - WITHDRAW_FEE_PERCENT / 100);
-        netUsd = afterFirstFee * (1 - WITHDRAW_SECOND_FEE_PERCENT / 100);
-        balanceField = 'wtcBalance';
-        deductAmount = wtcAmount;
-    }
+    const netUsd = usdtAmount;
+    const wtcAmount = Math.round(usdtAmount * WTC_PER_USD); // CN-equivalent, kept only for history/admin display consistency
+    const balanceField = 'usdtBalance';
+    const deductAmount = usdtAmount;
 
     // ── atomically deduct balance + lock (one withdraw at a time) ──
     const inc = { [balanceField]: -deductAmount, withdrawalCount: 1 };
@@ -176,7 +163,7 @@ async function handleCreate(req, res, db) {
         const text =
             `💸 <b>New Withdrawal Request</b>\n\n` +
             `👤 <code>${userId}</code> (@${user.telegramUsername || '?'})\n` +
-            `🪙 Source: <b>${source === 'usdt' ? 'Converted USDT ledger' : 'CN balance'}</b>\n` +
+            `🪙 Source: <b>Converted USDT ledger</b>\n` +
             `🪙 WTC: <b>${wtcAmount.toLocaleString()}</b>\n` +
             `💰 Amount: <b>${netUsd.toFixed(4)} ${methodInfo.currency}</b>\n` +
             `📤 Method: <b>${methodInfo.label}</b>\n` +
