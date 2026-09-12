@@ -1,235 +1,190 @@
-// api/clover.js — Clover Catch mini-game (falling-clover reflex game, the
-// Earning tab's headline feature).
+// api/clover.js — Clover Catch mini-game (Earn tab).
 //
-// ── SECURITY MODEL (read before changing anything) ──────────────────────
-// The round itself — where clovers/bombs fall, whether a tap lands on one,
-// exact timing — runs entirely client-side in index.html. There is no way
-// to fully re-verify that server-side without literally replaying raw
-// input events frame-by-frame, which this project doesn't do. Given that,
-// this endpoint is built the same way every other reward path in this app
-// is (see api/spin.js, api/earn.js): assume the client CAN be modified or
-// bypassed entirely, and make sure nothing it says can mint free CN.
+// The client (index.html's Clover Catch overlay) runs the actual falling-
+// object gameplay entirely on-device for a smooth 60fps feel — but it is
+// NEVER trusted for the reward. Security model:
 //
-// Five separate layers do that:
+//   1) 'start'  — atomically spends one of the user's daily plays and opens
+//      a session doc in `cloverSessions` (status:'active', server-side
+//      startTime). Returns a signed HMAC token binding {userId, sessionId,
+//      startTime} together, the same "string key" pattern api/earn.js uses
+//      for task-claim tokens — it proves the session wasn't forged, even
+//      though the DB record is already the real source of truth.
 //
-//   1. SIGNED SESSION TOKEN — `cloverStart` mints a short-lived HMAC token
-//      bound to (userId, startTime). `cloverComplete` without a valid,
-//      unexpired, unused token is rejected outright — a client can't skip
-//      straight to "cloverComplete" with an invented result and no real
-//      session ever having started.
-//   2. PHYSICS-PLAUSIBILITY CHECK — the reported clover count is bounds-
-//      checked against the real game's fastest possible spawn/fall rate
-//      (CLOVER_GAME_MIN_SECONDS_PER_CLOVER) and the round length. A claim
-//      of "50 clovers in 3 seconds" or "'time' finish after 8 seconds" is
-//      mathematically impossible under the real game and is rejected.
-//   3. SERVER ROLLS THE REWARD — the client's `cn` estimate (shown live
-//      during play, for UI feedback only) is NEVER read by this endpoint.
-//      The server re-rolls its own reward from the verified clover count
-//      using CLOVER_REWARD_TIERS (lib/constants.js), so a client that
-//      lies about the count only lies about something bounded (see #2),
-//      and lying about the reward amount directly is simply impossible —
-//      there is no `cn` field in the request this handler even looks at.
-//   4. SINGLE-USE TOKENS — each cloverStart token can be spent exactly
-//      once (usedCloverStarts, atomically checked+added in the very same
-//      update that credits the reward — same pattern as api/earn.js's
-//      usedTaskStarts, closing the double-submit race).
-//   5. SAME ACCOUNT-HEALTH GATES AS EVERYWHERE ELSE — isBanned and the
-//      multiAccountFlag/channelVerified REWARD_ELIGIBLE_FILTER used by
-//      api/earn.js and api/spin.js apply here too, plus a daily play cap
-//      (CLOVER_GAMES_DAILY_LIMIT) so the mode can't be farmed indefinitely
-//      even by a perfectly "legitimate-looking" sequence of requests.
+//   2) 'finish' — the client reports only an integer clover COUNT (capped
+//      at CLOVER_GAME_MAX_CLOVERS) and how the round ended. The server:
+//        - verifies the signature matches the session it actually issued
+//        - consumes the session exactly once (atomic findOneAndUpdate on
+//          status:'active' → 'completed' — replay-proof, race-proof)
+//        - rejects sessions that are expired, or whose claimed clover count
+//          is faster than physically possible for the elapsed time
+//          (anti-speedhack floor)
+//        - ROLLS ITS OWN REWARD for that many clovers using the identical
+//          weighted odds the client's UI uses (CLOVER_REWARD_TIERS), with
+//          crypto-secure randomness — the client's on-screen "CN earned"
+//          number is only ever a preview, never the credited amount.
 //
-// What this can't do: stop a genuinely fast/lucky human player, or detect
-// a pixel-perfect autoclicker/aimbot driving a real browser session — no
-// server can, for a reflex game, without full server-side simulation.
-// What it DOES stop is the cheap, common attack — calling this API
-// directly and skipping the game entirely to mint arbitrary CN.
+// A DevTools user can freely lie about `cloverCount` up to the hard cap,
+// or claim any reward number they like — none of it changes what actually
+// gets credited, because the credited amount is never derived from
+// anything the client sent except a bounded, session-gated integer.
 //
-//   { action: 'cloverStart',    initData }
-//   { action: 'cloverComplete', initData, startTime, signature, clovers, reason }
+//   { action: 'start',  initData }
+//   { action: 'finish', initData, sessionId, startTime, signature, cloverCount, reason }
 
 import crypto from 'crypto';
+import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../lib/mongodb.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
-import {
-    CLOVER_GAME_DURATION_SECONDS,
-    CLOVER_GAME_MAX_CLOVERS,
-    CLOVER_REWARD_TIERS,
-    CLOVER_GAME_TOKEN_MAX_AGE_SECONDS,
-    CLOVER_GAME_MIN_SECONDS_PER_CLOVER,
-    CLOVER_GAMES_DAILY_LIMIT,
-    CLOVER_GAME_REASONS,
-} from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
+import {
+    CLOVER_GAME_DURATION_SECONDS, CLOVER_GAME_MAX_CLOVERS, CLOVER_GAME_SESSION_GRACE_SECONDS,
+    CLOVER_GAME_MIN_MS_PER_CLOVER, CLOVER_REWARD_TIERS,
+} from '../lib/constants.js';
 
-// Reuses the same signing secret api/earn.js already requires — no new
-// environment variable to configure. The 'clover:' namespace prefix means
-// a token minted here can never be replayed against earn.js's taskStart
-// tokens (or vice versa), even though both derive from the same secret.
 const SECRET = process.env.TASK_SIGNING_SECRET;
 
-const signCloverStart = (userId, startTime) =>
-    crypto.createHmac('sha256', SECRET).update(`clover:${userId}:${startTime}`).digest('hex');
-
 // Same "flagged accounts earn nothing new until verified" gate used by
-// api/earn.js and api/spin.js — kept consistent across every reward path.
+// every other reward path (api/earn.js, api/spin.js, api/gift.js).
 const REWARD_ELIGIBLE_FILTER = { $or: [{ multiAccountFlag: { $ne: true } }, { channelVerified: true }] };
 
-// ── cloverStart ── issues the signed token the instant the player taps
-// "PLAY". Also front-loads the isBanned/daily-limit/review checks so the
-// player is told "no plays left today" BEFORE sitting through a round,
-// rather than after (cloverComplete enforces the real, final versions of
-// all of these atomically regardless — this is purely a better UX).
-async function handleCloverStart(req, res, db, userId) {
-    if (!SECRET) return res.status(500).json({ ok: false, error: 'server_misconfigured' });
+const signSession = (userId, sessionId, startTime) =>
+    crypto.createHmac('sha256', SECRET).update(`clover:${userId}:${sessionId}:${startTime}`).digest('hex');
 
-    const users = db.collection('users');
-    await ensureDailyReset(users, userId);
-
-    const user = await users.findOne(
-        { _id: userId },
-        { projection: { isBanned: 1, cloverGamesPlayedToday: 1, multiAccountFlag: 1, channelVerified: 1 } }
-    );
-    if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
-    if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
-    if (user.multiAccountFlag && !user.channelVerified) {
-        return res.status(403).json({ ok: false, error: 'account_under_review' });
-    }
-
-    const playedToday = user.cloverGamesPlayedToday || 0;
-    if (playedToday >= CLOVER_GAMES_DAILY_LIMIT) {
-        return res.status(200).json({ ok: false, error: 'daily_limit_reached', gamesRemainingToday: 0 });
-    }
-
-    const startTime = Date.now();
-    return res.status(200).json({
-        ok: true,
-        startTime,
-        signature: signCloverStart(userId, startTime),
-        durationSeconds: CLOVER_GAME_DURATION_SECONDS,
-        maxClovers: CLOVER_GAME_MAX_CLOVERS,
-        gamesRemainingToday: CLOVER_GAMES_DAILY_LIMIT - playedToday,
-    });
-}
-
-// Server's own reward roll — see file header, layer 3. Deliberately mirrors
-// the client's visual small/medium/large tiers so the live counter the
-// player watches during play is a close (not exact) preview, but this is
-// the ONLY roll that ever actually gets credited.
-function rollRewardForClovers(cloverCount) {
-    const totalWeight = CLOVER_REWARD_TIERS.reduce((s, t) => s + t.weight, 0);
-    let total = 0;
-    for (let i = 0; i < cloverCount; i++) {
-        const roll = crypto.randomInt(0, totalWeight);
-        let cumulative = 0;
-        let tier = CLOVER_REWARD_TIERS[CLOVER_REWARD_TIERS.length - 1];
-        for (const t of CLOVER_REWARD_TIERS) {
-            cumulative += t.weight;
-            if (roll < cumulative) { tier = t; break; }
+// One weighted draw from CLOVER_REWARD_TIERS, using crypto.randomInt so it
+// can never be predicted or influenced by anything client-side.
+function pickCloverReward() {
+    const roll = crypto.randomInt(0, 100);
+    let cumulative = 0;
+    for (const tier of CLOVER_REWARD_TIERS) {
+        cumulative += tier.weight;
+        if (roll < cumulative) {
+            const span = Math.round((tier.max - tier.min) * 1000);
+            const value = tier.min + crypto.randomInt(0, span + 1) / 1000;
+            return Math.round(value * 10) / 10;
         }
-        total += crypto.randomInt(tier.min, tier.max + 1); // inclusive of max
     }
-    return total;
+    const last = CLOVER_REWARD_TIERS[CLOVER_REWARD_TIERS.length - 1];
+    return last.max;
 }
 
-async function handleCloverComplete(req, res, db, userId) {
-    const { startTime, signature, clovers, reason } = req.body;
-
+async function handleStart(req, res, db, userId) {
     if (!SECRET) return res.status(500).json({ ok: false, error: 'server_misconfigured' });
-    if (!startTime || !signature) return res.status(400).json({ ok: false, error: 'missing_game_token' });
-    if (!CLOVER_GAME_REASONS.includes(reason)) return res.status(400).json({ ok: false, error: 'invalid_reason' });
 
-    const cloverCount = Number(clovers);
-    if (!Number.isInteger(cloverCount) || cloverCount < 0 || cloverCount > CLOVER_GAME_MAX_CLOVERS) {
-        return res.status(400).json({ ok: false, error: 'invalid_clover_count' });
-    }
-
-    // ── layer 1: the session token itself must check out ──
-    if (signCloverStart(userId, startTime) !== signature) {
-        return res.status(400).json({ ok: false, error: 'invalid_game_token' });
-    }
-    const elapsedSeconds = (Date.now() - Number(startTime)) / 1000;
-    if (isNaN(elapsedSeconds) || elapsedSeconds < 0) {
-        return res.status(400).json({ ok: false, error: 'invalid_game_token' });
-    }
-    if (elapsedSeconds > CLOVER_GAME_TOKEN_MAX_AGE_SECONDS) {
-        return res.status(400).json({ ok: false, error: 'game_token_expired' });
-    }
-
-    // ── layer 2: physics-plausibility check ──
-    const minPlausibleSeconds = cloverCount * CLOVER_GAME_MIN_SECONDS_PER_CLOVER;
-    if (elapsedSeconds < minPlausibleSeconds) {
-        return res.status(400).json({ ok: false, error: 'implausible_result' });
-    }
-    // a genuine "ran out of time" finish can only happen once the round's
-    // real clock has (almost) fully elapsed
-    if (reason === 'time' && elapsedSeconds < CLOVER_GAME_DURATION_SECONDS - 4) {
-        return res.status(400).json({ ok: false, error: 'implausible_result' });
-    }
-    // hitting the 50-clover cap stops all further spawning client-side, so
-    // 'bomb'/'missed' can never legitimately co-occur with a full cap —
-    // but 'time' is allowed too, for the rare case where the cap and the
-    // round clock are hit on the same tick.
-    if (cloverCount >= CLOVER_GAME_MAX_CLOVERS && reason !== 'max' && reason !== 'time') {
-        return res.status(400).json({ ok: false, error: 'invalid_reason' });
-    }
-
-    const startKey = String(startTime);
     const users = db.collection('users');
     await ensureDailyReset(users, userId);
 
-    // ── layer 4 + 5: atomically spend the token, claim today's play slot,
-    // and enforce ban/review gates — all in one filter so nothing can race ──
+    // ── atomically claim a play (limit check + decrement together) ──
     const gate = await users.findOneAndUpdate(
         {
             _id: userId,
+            cloverGamesRemaining: { $gt: 0 },
             isBanned: { $ne: true },
-            usedCloverStarts: { $ne: startKey },
-            cloverGamesPlayedToday: { $lt: CLOVER_GAMES_DAILY_LIMIT },
             ...REWARD_ELIGIBLE_FILTER,
         },
-        { $addToSet: { usedCloverStarts: startKey }, $inc: { cloverGamesPlayedToday: 1 } },
+        { $inc: { cloverGamesRemaining: -1 } },
         { returnDocument: 'after' }
     );
 
     if (!gate) {
-        const exists = await users.findOne(
-            { _id: userId },
-            { projection: { isBanned: 1, usedCloverStarts: 1, cloverGamesPlayedToday: 1, multiAccountFlag: 1, channelVerified: 1 } }
-        );
-        if (!exists) return res.status(404).json({ ok: false, error: 'user_not_found' });
-        if (exists.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
-        if ((exists.usedCloverStarts || []).includes(startKey)) {
-            return res.status(400).json({ ok: false, error: 'game_token_already_used' });
-        }
-        if ((exists.cloverGamesPlayedToday || 0) >= CLOVER_GAMES_DAILY_LIMIT) {
-            return res.status(200).json({ ok: false, error: 'daily_limit_reached', gamesRemainingToday: 0 });
-        }
-        if (exists.multiAccountFlag && !exists.channelVerified) {
-            return res.status(403).json({ ok: false, error: 'account_under_review' });
-        }
-        return res.status(400).json({ ok: false, error: 'claim_failed' });
+        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, cloverGamesRemaining: 1, multiAccountFlag: 1, channelVerified: 1 } });
+        if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
+        if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
+        return res.status(200).json({ ok: false, error: 'no_plays_left', cloverGamesRemaining: user.cloverGamesRemaining || 0 });
     }
 
-    // ── layer 3: the ONLY place a reward is ever decided ──
-    const cnEarned = cloverCount > 0 ? rollRewardForClovers(cloverCount) : 0;
-
-    const credited = cnEarned > 0
-        ? await users.findOneAndUpdate(
-            { _id: userId },
-            { $inc: { wtcBalance: cnEarned, lifetimeWtcEarned: cnEarned } },
-            { returnDocument: 'after' }
-        )
-        : gate;
+    // Server clock is the only clock that matters from here on — the
+    // client never gets to supply or override its own startTime.
+    const startTime = Date.now();
+    const insertResult = await db.collection('cloverSessions').insertOne({
+        userId,
+        startTime,
+        status: 'active',
+        createdAt: new Date(),
+    });
+    const sessionId = String(insertResult.insertedId);
 
     return res.status(200).json({
         ok: true,
-        cnEarned,
-        clovers: cloverCount,
-        reason,
-        wtcBalance: credited?.wtcBalance ?? gate.wtcBalance,
-        gamesRemainingToday: Math.max(0, CLOVER_GAMES_DAILY_LIMIT - (gate.cloverGamesPlayedToday || 0)),
+        sessionId,
+        startTime,
+        signature: signSession(userId, sessionId, startTime),
+        durationSeconds: CLOVER_GAME_DURATION_SECONDS,
+        maxClovers: CLOVER_GAME_MAX_CLOVERS,
+        cloverGamesRemaining: gate.cloverGamesRemaining,
+    });
+}
+
+async function handleFinish(req, res, db, userId) {
+    const { sessionId, signature, reason } = req.body;
+    const cloverCount = Math.floor(Number(req.body.cloverCount));
+
+    if (!sessionId || typeof signature !== 'string') return res.status(400).json({ ok: false, error: 'missing_fields' });
+    if (!Number.isInteger(cloverCount) || cloverCount < 0 || cloverCount > CLOVER_GAME_MAX_CLOVERS) {
+        return res.status(400).json({ ok: false, error: 'invalid_clover_count' });
+    }
+
+    let sessionObjId;
+    try { sessionObjId = new ObjectId(sessionId); } catch { return res.status(400).json({ ok: false, error: 'invalid_session' }); }
+
+    const sessions = db.collection('cloverSessions');
+    const session = await sessions.findOne({ _id: sessionObjId, userId });
+    if (!session) return res.status(404).json({ ok: false, error: 'session_not_found' });
+    if (session.status !== 'active') return res.status(400).json({ ok: false, error: 'session_already_used' });
+
+    // ── verify the signature against the DB-stored startTime (never the
+    // client's) — proves this exact session/time pair is the one we issued.
+    const expected = signSession(userId, sessionId, session.startTime);
+    const sigBuf = Buffer.from(signature, 'utf8');
+    const expBuf = Buffer.from(expected, 'utf8');
+    const sigValid = sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
+    if (!sigValid) return res.status(400).json({ ok: false, error: 'invalid_signature' });
+
+    // ── plausibility gates, all measured against the server's own clock ──
+    const elapsedMs = Date.now() - session.startTime;
+    const maxElapsedMs = (CLOVER_GAME_DURATION_SECONDS + CLOVER_GAME_SESSION_GRACE_SECONDS) * 1000;
+    if (elapsedMs < 0 || elapsedMs > maxElapsedMs) {
+        await sessions.updateOne({ _id: sessionObjId, status: 'active' }, { $set: { status: 'expired' } });
+        return res.status(400).json({ ok: false, error: 'session_expired' });
+    }
+    if (elapsedMs < cloverCount * CLOVER_GAME_MIN_MS_PER_CLOVER) {
+        await sessions.updateOne({ _id: sessionObjId, status: 'active' }, { $set: { status: 'rejected_speed' } });
+        return res.status(400).json({ ok: false, error: 'implausible_speed' });
+    }
+
+    // ── atomically consume the session exactly once — the real defense
+    // against replaying the same finished round for a second payout ──
+    const claimed = await sessions.findOneAndUpdate(
+        { _id: sessionObjId, userId, status: 'active' },
+        { $set: { status: 'completed', completedAt: new Date(), cloverCount, reason: String(reason || '').slice(0, 32) } },
+        { returnDocument: 'after' }
+    );
+    if (!claimed) return res.status(400).json({ ok: false, error: 'session_already_used' });
+
+    // ── the server rolls its own reward for `cloverCount` clovers — the
+    // client's displayed number during play was only ever a preview ──
+    let rewardWtc = 0;
+    for (let i = 0; i < cloverCount; i++) rewardWtc += pickCloverReward();
+    rewardWtc = Math.round(rewardWtc * 10) / 10;
+
+    const credited = await db.collection('users').findOneAndUpdate(
+        { _id: userId, ...REWARD_ELIGIBLE_FILTER },
+        { $inc: { wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc } },
+        { returnDocument: 'after' }
+    );
+    if (!credited) {
+        // Session stays consumed either way — the multi-account review gate
+        // just means this round's reward doesn't land until they verify.
+        return res.status(403).json({ ok: false, error: 'account_under_review' });
+    }
+
+    return res.status(200).json({
+        ok: true,
+        cloverCount,
+        rewardWtc,
+        wtcBalance: credited.wtcBalance,
     });
 }
 
@@ -245,8 +200,8 @@ export default async function handler(req, res) {
 
     const { db } = await connectToDatabase();
     switch (action) {
-        case 'cloverStart':    return handleCloverStart(req, res, db, userId);
-        case 'cloverComplete': return handleCloverComplete(req, res, db, userId);
+        case 'start':  return handleStart(req, res, db, userId);
+        case 'finish': return handleFinish(req, res, db, userId);
         default: return res.status(400).json({ ok: false, error: 'unknown_action' });
     }
 }
