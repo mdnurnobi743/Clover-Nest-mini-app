@@ -11,7 +11,7 @@
 //   GET  /api/user?action=profile&initData=...
 
 import { connectToDatabase } from '../lib/mongodb.js';
-import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD, DAILY_FREE_SPINS, DAILY_CLOVER_GAMES } from '../lib/constants.js';
+import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD, DAILY_FREE_SPINS, DAILY_CLOVER_GAMES, zeroedAdViews } from '../lib/constants.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { checkAndRecordFingerprint } from '../lib/fingerprintCheck.js';
 import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, tgSend } from '../lib/telegram.js';
@@ -98,6 +98,8 @@ async function handleInit(req, res, db) {
         withdrawalCount: 0,
         lastWithdrawDate: '',
         usedTaskStarts: [],
+        usedAdStarts: [], // ⚠️ NEW — Daily ads (Task tab) anti-replay tokens
+        adViews: zeroedAdViews(), // ⚠️ NEW — Daily ads (Task tab) per-network view counters
         tasksCompletedToday: 0,
         spinsRemaining: DAILY_FREE_SPINS, // ⚠️ NEW — Spin Wheel daily allowance
         cloverGamesRemaining: DAILY_CLOVER_GAMES, // Clover Catch daily allowance
