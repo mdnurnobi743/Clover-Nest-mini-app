@@ -3117,9 +3117,9 @@ function openCloverCatchGame(autoStart) {
         const cloverProgress = Math.min(1, game.cloverCount / MAX_CLOVERS);
         const progress = Math.min(1, elapsedProgress * 0.35 + cloverProgress * 0.65);
         return {
-            spawnMin: lerp(620, 300, progress), spawnMax: lerp(900, 460, progress),
-            speedMin: lerp(170, 320, progress), speedMax: lerp(240, 460, progress),
-            bombChance: lerp(0.12, 0.34, progress),
+            spawnMin: lerp(500, 220, progress), spawnMax: lerp(760, 360, progress),
+            speedMin: lerp(210, 380, progress), speedMax: lerp(300, 540, progress),
+            bombChance: lerp(0.18, 0.42, progress),
         };
     }
 
