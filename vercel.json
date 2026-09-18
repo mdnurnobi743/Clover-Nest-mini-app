@@ -1,6 +1,7 @@
+
 {
   "functions": {
-    "api/bot.js": { "maxDuration": 30 },
+    "api/bot.js": { "maxDuration": 300 },
     "api/user.js": { "maxDuration": 10 },
     "api/earn.js": { "maxDuration": 10 },
     "api/data.js": { "maxDuration": 10 }
