@@ -1,6 +1,7 @@
-// api/earn.js — REBUILT (video / lootbox / ad-network / 777 lottery systems
-// fully removed along with their frontend counterparts). Only the parts that
-// still have a live UI remain: tasks (start + complete) and promo codes.
+// api/earn.js — REBUILT (video / lootbox / 777 lottery systems fully
+// removed along with their frontend counterparts). Live UI actions: tasks
+// (start + complete), promo codes, and the Daily ads reward hub (Monetag /
+// GigaPub — Task tab → 📅 Daily).
 //
 // Every request still requires a verified Telegram initData, and the userId
 // extracted from it is the only one ever trusted.
@@ -11,6 +12,8 @@
 //
 //   { action: 'taskStart',     initData, taskId }
 //   { action: 'taskComplete',  initData, taskId, startTime?, signature? }
+//   { action: 'adWatchStart',  initData, network }              // network: 'monetag' | 'gigapub'
+//   { action: 'adWatchClaim',  initData, network, startTime, signature }
 //   { action: 'claimPromo',    initData, code }
 
 import crypto from 'crypto';
@@ -20,7 +23,7 @@ import { isMember } from '../lib/telegram.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
-import { TASK_MIN_WAIT_SECONDS } from '../lib/constants.js';
+import { TASK_MIN_WAIT_SECONDS, AD_NETWORKS, AD_MIN_WAIT_SECONDS, AD_TOKEN_MAX_AGE_SECONDS } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
 
 const SECRET = process.env.TASK_SIGNING_SECRET;
@@ -29,6 +32,12 @@ const SECRET = process.env.TASK_SIGNING_SECRET;
 // token for one task can never be replayed to claim a different task.
 const signTaskStart = (userId, taskId, startTime) =>
     crypto.createHmac('sha256', SECRET).update(`task:${userId}:${taskId}:${startTime}`).digest('hex');
+
+// ⚠️ NEW — separate signing namespace for Daily-ads reward tokens (Task tab
+// → 📅 Daily). Same shape as signTaskStart: includes the network so a token
+// issued for Monetag can never be replayed to claim GigaPub's reward.
+const signAdStart = (userId, network, startTime) =>
+    crypto.createHmac('sha256', SECRET).update(`ad:${userId}:${network}:${startTime}`).digest('hex');
 
 // multi-account-flagged accounts earn no NEW WTC until channel + community
 // verified. Used as an extra $and condition inside every reward handler's
@@ -148,6 +157,81 @@ async function handleTaskComplete(req, res, db, userId) {
     return res.status(200).json({ ok: true, rewardWtc });
 }
 
+// ── Daily ads (Task tab → 📅 Daily) ──────────────────────────────────────
+// Two independent ad networks (Monetag, GigaPub — lib/constants.js
+// AD_NETWORKS), each with its own daily view allowance and per-view CN
+// reward, reset together with everything else at Bangladesh midnight
+// (lib/dailyReset.js). Same two-step signed-token pattern as
+// taskStart/taskComplete above: adWatchStart is called the instant the
+// user taps "Watch", BEFORE the ad SDK's promise even resolves, so a
+// token can't be minted retroactively after the fact.
+//
+//   { action: 'adWatchStart', initData, network }
+//   { action: 'adWatchClaim', initData, network, startTime, signature }
+async function handleAdWatchStart(req, res, db, userId) {
+    const { network } = req.body;
+    if (!network || !AD_NETWORKS[network]) return res.status(400).json({ ok: false, error: 'invalid_network' });
+    if (!SECRET) return res.status(500).json({ ok: false, error: 'server_misconfigured' });
+    const startTime = Date.now();
+    return res.status(200).json({ ok: true, startTime, signature: signAdStart(userId, network, startTime) });
+}
+
+async function handleAdWatchClaim(req, res, db, userId) {
+    const { network, startTime, signature } = req.body;
+    if (!network || !AD_NETWORKS[network]) return res.status(400).json({ ok: false, error: 'invalid_network' });
+    if (!startTime || !signature) return res.status(400).json({ ok: false, error: 'missing_ad_token' });
+    if (signAdStart(userId, network, startTime) !== signature) {
+        return res.status(400).json({ ok: false, error: 'invalid_ad_token' });
+    }
+
+    const elapsedSeconds = (Date.now() - Number(startTime)) / 1000;
+    if (isNaN(elapsedSeconds) || elapsedSeconds < 0) return res.status(400).json({ ok: false, error: 'invalid_ad_token' });
+    // The ad SDK's own Promise only resolves once the ad has actually
+    // played, so a genuine claim can never arrive faster than this — a
+    // claim this fast means adWatchClaim was called without ever showing
+    // an ad at all.
+    if (elapsedSeconds < AD_MIN_WAIT_SECONDS) return res.status(400).json({ ok: false, error: 'watch_time_too_short' });
+    if (elapsedSeconds > AD_TOKEN_MAX_AGE_SECONDS) return res.status(400).json({ ok: false, error: 'ad_token_expired' });
+
+    const users = db.collection('users');
+    await ensureDailyReset(users, userId);
+
+    const { rewardWtc, dailyLimit } = AD_NETWORKS[network];
+    const tokenKey = `${network}:${startTime}`;
+    const countField = `adViews.${network}`;
+
+    // ── single atomic claim: gate (daily cap + single-use token) AND credit
+    // together, so a race can't double-credit the same token or blow past
+    // the daily cap. Reward is a fixed amount per network (no randomness),
+    // so — unlike Spin Wheel's two-step gate-then-decide — this is safe as
+    // one findOneAndUpdate.
+    const gate = await users.findOneAndUpdate(
+        {
+            _id: userId,
+            isBanned: { $ne: true },
+            [countField]: { $lt: dailyLimit },
+            usedAdStarts: { $ne: tokenKey },
+            ...REWARD_ELIGIBLE_FILTER,
+        },
+        {
+            $inc: { [countField]: 1, wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc },
+            $addToSet: { usedAdStarts: tokenKey },
+        },
+        { returnDocument: 'after' }
+    );
+
+    if (!gate) {
+        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, adViews: 1, multiAccountFlag: 1, channelVerified: 1, usedAdStarts: 1 } });
+        if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
+        if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if ((user.usedAdStarts || []).includes(tokenKey)) return res.status(400).json({ ok: false, error: 'ad_token_already_used' });
+        if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
+        return res.status(200).json({ ok: false, error: 'daily_limit_reached', viewsToday: user.adViews?.[network] || 0, dailyLimit });
+    }
+
+    return res.status(200).json({ ok: true, rewardWtc, viewsToday: gate.adViews?.[network] ?? 0, dailyLimit });
+}
+
 // ── claimPromo ── ⚠️ NOW GATED
 async function handleClaimPromo(req, res, db, userId) {
     const { code } = req.body;
@@ -209,6 +293,8 @@ export default async function handler(req, res) {
     switch (action) {
         case 'taskStart':      return handleTaskStart(req, res, db, userId);
         case 'taskComplete':   return handleTaskComplete(req, res, db, userId);
+        case 'adWatchStart':   return handleAdWatchStart(req, res, db, userId);
+        case 'adWatchClaim':   return handleAdWatchClaim(req, res, db, userId);
         case 'claimPromo':     return handleClaimPromo(req, res, db, userId);
         default: return res.status(400).json({ ok: false, error: 'unknown_action' });
     }
