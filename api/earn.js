@@ -153,7 +153,7 @@ async function handleTaskComplete(req, res, db, userId) {
         return res.status(200).json({ ok: false, alreadyDone: true });
     }
 
-    await maybeAwardReferralMilestones(db, userId, { completedTasksCount: gate.completedTasks.length });
+    try { await maybeAwardReferralMilestones(db, userId); } catch (e) { console.error('referral check (task) failed:', e); }
     return res.status(200).json({ ok: true, rewardWtc });
 }
 
@@ -214,7 +214,9 @@ async function handleAdWatchClaim(req, res, db, userId) {
             ...REWARD_ELIGIBLE_FILTER,
         },
         {
-            $inc: { [countField]: 1, wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc },
+            // lifetimeAdViews never resets (unlike adViews.* which refills daily) —
+            // it's what the referral "friend watches 20 ads" bonus counts (lib/referral.js).
+            $inc: { [countField]: 1, wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc, lifetimeAdViews: 1 },
             $addToSet: { usedAdStarts: tokenKey },
         },
         { returnDocument: 'after' }
@@ -228,6 +230,9 @@ async function handleAdWatchClaim(req, res, db, userId) {
         if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
         return res.status(200).json({ ok: false, error: 'daily_limit_reached', viewsToday: user.adViews?.[network] || 0, dailyLimit });
     }
+
+    // Referral: this ad may have been the friend's 20th → pay the referrer. Never blocks the reward.
+    try { await maybeAwardReferralMilestones(db, userId); } catch (e) { console.error('referral check (ad) failed:', e); }
 
     return res.status(200).json({ ok: true, rewardWtc, viewsToday: gate.adViews?.[network] ?? 0, dailyLimit });
 }
