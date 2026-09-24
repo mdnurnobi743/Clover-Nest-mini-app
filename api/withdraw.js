@@ -53,6 +53,7 @@ async function handleStatus(req, res, db) {
             validReferralsAvailable,
         },
         minWithdrawUsdt: MIN_WITHDRAW_USDT, // ⚠️ NEW — lets the frontend validate the USDT-source amount without duplicating the constant
+        withdrawPending: !!user.withdrawPending, // lets the Wallet screen show "you already have a request in review" up front
     });
 }
 
@@ -72,7 +73,7 @@ async function handleHistory(req, res, db) {
         ok: true,
         history: history.map((h) => ({
             status: h.status, cashAmount: h.cashAmount, currency: h.currency,
-            method: h.method, createdAt: h.createdAt,
+            method: h.method, createdAt: h.createdAt, processedAt: h.processedAt || null,
         })),
     });
 }
