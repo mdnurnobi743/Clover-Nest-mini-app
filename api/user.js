@@ -62,7 +62,13 @@ async function handleInit(req, res, db) {
         // after that, `existing` here comes back null and they fall straight
         // into the newUser branch below — a genuinely fresh account, same as
         // if they'd never used the app at all.
-        await users.updateOne({ _id: userId }, { $set: { lastActiveAt: new Date() } });
+        // ⚠️ NEW — also keep the Telegram @username / first name fresh on every
+        // open (they were only ever saved once at signup, so users who added or
+        // changed a username later showed up as "N/A" in the admin panel).
+        const refresh = { lastActiveAt: new Date() };
+        if (username && username !== existing.telegramUsername) refresh.telegramUsername = username;
+        if (firstName && firstName !== existing.firstName) refresh.firstName = firstName;
+        await users.updateOne({ _id: userId }, { $set: refresh });
         // Referral rewards: re-check this friend's progress on every app open, so
         // milestones reached before the referral payout was fixed (or missed by any
         // failed call) are paid to the referrer automatically. Idempotent.
