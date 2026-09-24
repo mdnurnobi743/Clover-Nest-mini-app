@@ -63,6 +63,12 @@ async function handleInit(req, res, db) {
         // into the newUser branch below — a genuinely fresh account, same as
         // if they'd never used the app at all.
         await users.updateOne({ _id: userId }, { $set: { lastActiveAt: new Date() } });
+        // Referral rewards: re-check this friend's progress on every app open, so
+        // milestones reached before the referral payout was fixed (or missed by any
+        // failed call) are paid to the referrer automatically. Idempotent.
+        if (existing.referredBy) {
+            try { await maybeAwardReferralMilestones(db, userId); } catch (e) { console.error('referral recheck failed:', e); }
+        }
         return res.status(200).json({ ok: true, alreadyExists: true });
     }
 
