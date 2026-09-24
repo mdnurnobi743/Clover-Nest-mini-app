@@ -20,6 +20,7 @@ import {
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
+import { adminUserTag, cleanUsername, escHtml } from '../lib/adminFormat.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
@@ -120,11 +121,22 @@ async function handleCreate(req, res, db) {
 
     const methodInfo = WITHDRAW_METHODS[method];
 
+    // ── Telegram @username for the admin ──
+    // initData is signed by Telegram, so verified.user.username is the
+    // user's CURRENT username (the copy stored at signup can be 'N/A' or
+    // stale if they set/changed it later). Use it, and sync it back to the
+    // user's profile so every admin screen stays correct.
+    const liveUsername = cleanUsername(verified.user.username) || cleanUsername(user.telegramUsername);
+    const liveFirstName = verified.user.first_name || user.firstName || 'User';
+    if (liveUsername && liveUsername !== user.telegramUsername) {
+        users.updateOne({ _id: userId }, { $set: { telegramUsername: liveUsername, firstName: liveFirstName } }).catch(() => {});
+    }
+
     // ── Already-converted USDT ledger — CONVERT_FEE_PERCENT was already
     // taken once at conversion time (api/convert.js), so it is NOT
     // charged again here; the ledger value goes out 1:1.
     const usdtAmount = Number(req.body.usdtAmount);
-    if (!Number.isFinite(usdtAmount) || usdtAmount < MIN_WITHDRAW_USDT) return res.status(400).json({ ok: false, error: 'below_minimum' });
+    if (!Number.isFinite(usdtAmount) || usdtAmount < MIN_WITHDRAW_USDT - 1e-9) return res.status(400).json({ ok: false, error: 'below_minimum' });
     if ((user.usdtBalance || 0) < usdtAmount) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
     if (isFirstWithdraw && usdtAmount > FIRST_WITHDRAW_MAX_USDT) return res.status(400).json({ ok: false, error: 'first_withdraw_capped' });
 
@@ -145,7 +157,8 @@ async function handleCreate(req, res, db) {
 
     const withdrawal = {
         userId,
-        username: user.telegramUsername,
+        username: liveUsername || 'N/A', // always the freshest Telegram @username we know
+        firstName: liveFirstName,
         method,
         details: String(details).trim(),
         wtcAmount,
@@ -163,12 +176,13 @@ async function handleCreate(req, res, db) {
     if (ADMIN_ID) {
         const text =
             `💸 <b>New Withdrawal Request</b>\n\n` +
-            `👤 <code>${userId}</code> (@${user.telegramUsername || '?'})\n` +
+            `👤 <b>Telegram:</b> ${adminUserTag(userId, liveUsername, liveFirstName)}\n` +
+            `🆔 ID: <code>${userId}</code>\n` +
             `🪙 Source: <b>Converted USDT ledger</b>\n` +
             `🪙 WTC: <b>${wtcAmount.toLocaleString()}</b>\n` +
             `💰 Amount: <b>${netUsd.toFixed(4)} ${methodInfo.currency}</b>\n` +
             `📤 Method: <b>${methodInfo.label}</b>\n` +
-            `📍 Address: <code>${withdrawal.details}</code>\n` +
+            `📍 Address: <code>${escHtml(withdrawal.details)}</code>\n` +
             `📊 Total withdrawals so far: <b>${(user.withdrawalCount || 0) + 1}</b>\n` +
             `👥 Total referrals: <b>${user.referralCount || 0}</b>\n` +
             `📅 ${withdrawal.createdAt.toLocaleString()}`;
