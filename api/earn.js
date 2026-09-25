@@ -234,6 +234,15 @@ async function handleAdWatchClaim(req, res, db, userId) {
     // Referral: this ad may have been the friend's 20th → pay the referrer. Never blocks the reward.
     try { await maybeAwardReferralMilestones(db, userId); } catch (e) { console.error('referral check (ad) failed:', e); }
 
+    // ⚠️ NEW — TTL-backed ad-watch log (lib/mongodb.js has a 7-day TTL index
+    // on watchedAt). Purely a history/audit trail — never read back by any
+    // reward logic above, so a failure here must never fail the request.
+    // ⚠️ Awaited (not fire-and-forget): on Vercel a serverless function can
+    // be frozen the instant res.json() is sent, so an un-awaited insert can
+    // simply never happen. try/catch keeps it non-blocking on error only.
+    try { await db.collection('adWatchLogs').insertOne({ userId, network, rewardWtc, watchedAt: new Date() }); }
+    catch (e) { console.error('adWatchLogs insert failed:', e); }
+
     return res.status(200).json({ ok: true, rewardWtc, viewsToday: gate.adViews?.[network] ?? 0, dailyLimit });
 }
 
@@ -303,4 +312,4 @@ export default async function handler(req, res) {
         case 'claimPromo':     return handleClaimPromo(req, res, db, userId);
         default: return res.status(400).json({ ok: false, error: 'unknown_action' });
     }
-}
+         }
