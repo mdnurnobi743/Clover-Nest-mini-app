@@ -15,7 +15,7 @@ import crypto from 'crypto';
 import { connectToDatabase } from '../lib/mongodb.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
-import { SPIN_SEGMENTS, WTC_PER_USD } from '../lib/constants.js';
+import { SPIN_SEGMENTS, WTC_PER_USD, SPIN_HISTORY_LIMIT } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
 
 // Same "flagged accounts earn nothing new until verified" gate used by
@@ -83,9 +83,23 @@ async function handleSpin(req, res, db, userId) {
     // ── STEP 3: credit the result. spinsRemaining is already decremented from
     // STEP 1 (and possibly incremented back here for the bonus-spin wedge),
     // so this can't be raced into double-crediting the same spin.
+    //
+    // ⚠️ NEW — spinHistory: NOT a TTL index (Mongo TTL can only expire a
+    // whole document after a fixed time, not "keep the newest N"). $push
+    // with $slice keeps this array capped at the last SPIN_HISTORY_LIMIT
+    // (15) entries forever, on every write, with no extra collection and no
+    // cron job needed.
     const credited = await users.findOneAndUpdate(
         { _id: userId },
-        { $inc: inc },
+        {
+            $inc: inc,
+            $push: {
+                spinHistory: {
+                    $each: [{ segmentId: segment.id, type: segment.type, amountWtc, at: new Date() }],
+                    $slice: -SPIN_HISTORY_LIMIT,
+                },
+            },
+        },
         { returnDocument: 'after' }
     );
 
