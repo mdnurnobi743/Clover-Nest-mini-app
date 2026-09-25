@@ -20,6 +20,7 @@ import {
     WITHDRAWALS_OPEN, todayBD,
 } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
+import { getTaskRequirement } from '../lib/taskRequirement.js';
 import { adminUserTag, cleanUsername, escHtml } from '../lib/adminFormat.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
@@ -33,7 +34,7 @@ async function handleStatus(req, res, db) {
     const user = await db.collection('users').findOne({ _id: userId });
     if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
-    const tasksHave = (user.completedTasks || []).length;
+    const taskReq = await getTaskRequirement(db, user);
     const isFirstWithdraw = (user.withdrawalCount || 0) === 0;
     const validReferralsAvailable = Math.max(0, (user.validReferralCount || 0) - (user.usedValidReferrals || 0));
     const referralMet = isFirstWithdraw || validReferralsAvailable >= WITHDRAW_VALID_REFERRALS_PER_WITHDRAW;
@@ -42,9 +43,11 @@ async function handleStatus(req, res, db) {
         ok: true,
         withdrawalsOpen: WITHDRAWALS_OPEN,
         withdrawRequirements: {
-            tasksRequired: WITHDRAW_TASKS_REQUIRED,
-            tasksHave,
-            tasksMet: tasksHave >= WITHDRAW_TASKS_REQUIRED,
+            tasksRequired: taskReq.required,          // what THIS user needs right now (never more than achievable)
+            tasksRequiredFull: taskReq.fullRequired,  // the normal requirement (8)
+            tasksHave: taskReq.have,
+            tasksAvailable: taskReq.available,        // tasks this user can still do (null once already met)
+            tasksMet: taskReq.met,
         },
         referralRequirement: {
             met: referralMet,
@@ -106,8 +109,8 @@ async function handleCreate(req, res, db) {
     if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked', reason: user.accountLockedReason || null });
     if (user.withdrawPending) return res.status(400).json({ ok: false, error: 'withdraw_pending' });
 
-    const tasksHave = (user.completedTasks || []).length;
-    if (tasksHave < WITHDRAW_TASKS_REQUIRED) return res.status(400).json({ ok: false, error: 'tasks_required' });
+    const taskReq = await getTaskRequirement(db, user);
+    if (!taskReq.met) return res.status(400).json({ ok: false, error: 'tasks_required' });
 
     // These anti-abuse gates apply the same way regardless of which balance
     // is paying out — they're about the ACCOUNT, not the currency.
@@ -150,7 +153,7 @@ async function handleCreate(req, res, db) {
     if (!isFirstWithdraw) inc.usedValidReferrals = 1;
     const claimed = await users.findOneAndUpdate(
         { _id: userId, [balanceField]: { $gte: deductAmount }, withdrawPending: { $ne: true } },
-        { $inc: inc, $set: { withdrawPending: true, lastWithdrawDate: todayBD() } },
+        { $inc: inc, $set: { withdrawPending: true, lastWithdrawDate: todayBD(), tasksRequirementMet: true } }, // sticky — see lib/taskRequirement.js
         { returnDocument: 'after' }
     );
     if (!claimed) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
