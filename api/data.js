@@ -6,6 +6,7 @@
 
 import { connectToDatabase } from '../lib/mongodb.js';
 import { applyCors } from '../lib/cors.js';
+import { TASK_NOT_FULL } from '../lib/taskRequirement.js';
 
 // প্রাইভেসির জন্য username আংশিক মাস্ক করা হয় — যেমন "Rashu_Xansi" → "Ras***si"
 function maskUsername(name) {
@@ -25,8 +26,10 @@ export default async function handler(req, res) {
         const { db } = await connectToDatabase();
 
         if (type === 'tasks') {
+            // Full tasks (completionCount reached `limit`) are left out — users used to see them,
+            // tap Start, and only then hit "task_full", which looked like a broken task.
             const tasks = await db.collection('tasks')
-                .find({ isApproved: true })
+                .find({ isApproved: true, $or: TASK_NOT_FULL })
                 .sort({ createdAt: -1 })
                 .limit(50)
                 .toArray();
