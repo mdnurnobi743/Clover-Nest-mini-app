@@ -40,7 +40,7 @@ import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { applyCors } from '../lib/cors.js';
 import {
     CLOVER_GAME_DURATION_SECONDS, CLOVER_GAME_MAX_CLOVERS, CLOVER_GAME_SESSION_GRACE_SECONDS,
-    CLOVER_GAME_MIN_MS_PER_CLOVER, CLOVER_REWARD_TIERS,
+    CLOVER_GAME_MIN_MS_PER_CLOVER, CLOVER_REWARD_TIERS, GAME_HISTORY_LIMIT,
 } from '../lib/constants.js';
 
 const SECRET = process.env.TASK_SIGNING_SECRET;
@@ -169,9 +169,24 @@ async function handleFinish(req, res, db, userId) {
     for (let i = 0; i < cloverCount; i++) rewardWtc += pickCloverReward();
     rewardWtc = Math.round(rewardWtc * 10) / 10;
 
+    // ⚠️ NEW — gameHistory: same $push+$slice cap pattern as spinHistory
+    // (api/spin.js) — keeps the last GAME_HISTORY_LIMIT (10) rounds per user,
+    // forever, no TTL/cron involved. This is separate from `cloverSessions`
+    // (the security/anti-replay session record, which DOES use a real TTL
+    // index now — see lib/mongodb.js) — that collection was never cleaned up
+    // before and is the actual unbounded-growth risk this whole system
+    // targets.
     const credited = await db.collection('users').findOneAndUpdate(
         { _id: userId, ...REWARD_ELIGIBLE_FILTER },
-        { $inc: { wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc } },
+        {
+            $inc: { wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc },
+            $push: {
+                gameHistory: {
+                    $each: [{ cloverCount, rewardWtc, at: new Date() }],
+                    $slice: -GAME_HISTORY_LIMIT,
+                },
+            },
+        },
         { returnDocument: 'after' }
     );
     if (!credited) {
