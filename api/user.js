@@ -14,7 +14,7 @@ import { connectToDatabase } from '../lib/mongodb.js';
 import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD, DAILY_FREE_SPINS, DAILY_CLOVER_GAMES, zeroedAdViews } from '../lib/constants.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { checkAndRecordFingerprint } from '../lib/fingerprintCheck.js';
-import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, tgSend } from '../lib/telegram.js';
+import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, checkAllMemberships, tgSend } from '../lib/telegram.js';
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { getClientIp, checkDevice, claimDevice, claimDeviceForUser, getOwnerPublicInfo } from '../lib/ipRegistry.js';
@@ -231,11 +231,7 @@ async function handleCheckJoin(req, res, db) {
     const userId = String(verified.user.id);
 
     try {
-        const [inChannel, inGroup] = await Promise.all([
-            isMember(userId, OFFICIAL_CHANNEL),
-            isMember(userId, COMMUNITY_GROUP),
-        ]);
-        const joined = inChannel && inGroup;
+        const { inChannel, inGroup, inProof, joined } = await checkAllMemberships(userId);
 
         if (joined) {
             try {
@@ -246,11 +242,11 @@ async function handleCheckJoin(req, res, db) {
             const existing = await db.collection('users').findOne({ _id: userId }, { projection: { channelVerified: 1 } });
             if (existing?.channelVerified) {
                 await db.collection('users').updateOne({ _id: userId }, { $set: { channelVerified: false } });
-                return res.status(200).json({ joined: false, inChannel, inGroup, leftAfterVerifying: true });
+                return res.status(200).json({ joined: false, inChannel, inGroup, inProof, leftAfterVerifying: true });
             }
         }
 
-        return res.status(200).json({ joined, inChannel, inGroup });
+        return res.status(200).json({ joined, inChannel, inGroup, inProof });
     } catch (err) {
         console.error('checkJoin error:', err);
         return res.status(200).json({ joined: true, error: 'check_failed' });
