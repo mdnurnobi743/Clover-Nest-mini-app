@@ -17,9 +17,23 @@ const MIN_GAP_MS = 7 * 60 * 60 * 1000; // double-fire thekate: 7hr-er moddhe aba
 
 // Ekhane nijer message likho. Prottibar ekta kore rotate hobe.
 const MESSAGES = [
-    '🍀 <b>Clover Nest</b>\n\nTomar daily task ar free spin ready! Ekhoni open koro ar CN earn koro 💰',
-    '🎡 <b>Free spin wait korche!</b>\n\nDaily spin ar Clover Catch game kheley bonus CN nao 🍀',
-    '👥 <b>Friend invite koro, CN earn koro!</b>\n\nProti referral-e extra reward pao 🎁',
+    // 1 — Daily tasks
+    '🍀 <b>Your daily tasks are ready!</b>\n\nComplete today\'s tasks and collect your CN rewards. It only takes a few minutes 💰',
+
+    // 2 — Free spin
+    '🎡 <b>Your free spin is waiting!</b>\n\nSpin the wheel now and see what you win. Don\'t let your daily spins go to waste 🍀',
+
+    // 3 — Clover Catch game
+    '🎮 <b>Play Clover Catch!</b>\n\nCatch the clovers, beat your best score and earn CN while having fun 🍀',
+
+    // 4 — Referral
+    '👥 <b>Invite friends, earn more!</b>\n\nShare your referral link and get rewarded for every friend who joins Clover Nest 🎁',
+
+    // 5 — Payment proof / trust
+    '✅ <b>Real users, real payouts!</b>\n\nCheck our payment proof channel to see recent withdrawals, then keep earning your CN 💸',
+
+    // 6 — Come back / streak
+    '🌟 <b>Don\'t miss out today!</b>\n\nOpen Clover Nest, finish your daily activities and keep growing your balance 🚀',
 ];
 
 export default async function handler(req, res) {
