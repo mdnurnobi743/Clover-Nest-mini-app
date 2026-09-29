@@ -6,9 +6,6 @@
     "api/earn.js": { "maxDuration": 10 },
     "api/data.js": { "maxDuration": 10 }
   },
-  "crons": [
-    { "path": "/api/cron-notify", "schedule": "0 */8 * * *" }
-  ],
   "headers": [
     {
       "source": "/assets/(.*)",
