@@ -22,6 +22,7 @@ import {
 import { applyCors } from '../lib/cors.js';
 import { getTaskRequirement } from '../lib/taskRequirement.js';
 import { adminUserTag, cleanUsername, escHtml } from '../lib/adminFormat.js';
+import { checkWithdrawalVelocity } from '../lib/velocity.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
@@ -109,6 +110,14 @@ async function handleCreate(req, res, db) {
     if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked', reason: user.accountLockedReason || null });
     if (user.withdrawPending) return res.status(400).json({ ok: false, error: 'withdraw_pending' });
 
+    // ── Withdrawal-burst guard (lib/velocity.js): 25+ requests app-wide in
+    // 5 minutes = a script. Refuse this one BEFORE any balance is touched,
+    // lock + scam-flag everyone in the burst, and alert the admin.
+    try {
+        const burst = await checkWithdrawalVelocity(db, userId);
+        if (burst.triggered) return res.status(403).json({ ok: false, error: 'account_locked' });
+    } catch (e) { console.error('withdrawal velocity check failed:', e); }
+
     const taskReq = await getTaskRequirement(db, user);
     if (!taskReq.met) return res.status(400).json({ ok: false, error: 'tasks_required' });
 
@@ -152,11 +161,19 @@ async function handleCreate(req, res, db) {
     const inc = { [balanceField]: -deductAmount, withdrawalCount: 1 };
     if (!isFirstWithdraw) inc.usedValidReferrals = 1;
     const claimed = await users.findOneAndUpdate(
-        { _id: userId, [balanceField]: { $gte: deductAmount }, withdrawPending: { $ne: true } },
+        { _id: userId, [balanceField]: { $gte: deductAmount }, withdrawPending: { $ne: true }, accountLocked: { $ne: true }, isBanned: { $ne: true } },
         { $inc: inc, $set: { withdrawPending: true, lastWithdrawDate: todayBD(), tasksRequirementMet: true } }, // sticky — see lib/taskRequirement.js
         { returnDocument: 'after' }
     );
-    if (!claimed) return res.status(400).json({ ok: false, error: 'insufficient_balance' });
+    if (!claimed) {
+        // The filter above also fails if the account got locked/banned between
+        // the read at the top and this atomic claim (e.g. a velocity lock fired
+        // by a parallel request) — report that precisely instead of "balance".
+        const now = await users.findOne({ _id: userId }, { projection: { accountLocked: 1, isBanned: 1 } });
+        if (now?.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if (now?.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
+        return res.status(400).json({ ok: false, error: 'insufficient_balance' });
+    }
 
     const withdrawal = {
         userId,
@@ -176,6 +193,14 @@ async function handleCreate(req, res, db) {
     const inserted = await db.collection('withdrawals').insertOne(withdrawal);
     const wid = String(inserted.insertedId);
 
+    // Same payout address used by OTHER accounts = classic multi-account scam
+    // pattern. Doesn't block anything, just warns the admin on the request.
+    let sharedAddrUsers = 0;
+    try {
+        const others = await db.collection('withdrawals').distinct('userId', { details: withdrawal.details, userId: { $ne: userId } });
+        sharedAddrUsers = others.length;
+    } catch { /* best-effort */ }
+
     if (ADMIN_ID) {
         const text =
             `💸 <b>New Withdrawal Request</b>\n\n` +
@@ -188,6 +213,7 @@ async function handleCreate(req, res, db) {
             `📍 Address: <code>${escHtml(withdrawal.details)}</code>\n` +
             `📊 Total withdrawals so far: <b>${(user.withdrawalCount || 0) + 1}</b>\n` +
             `👥 Total referrals: <b>${user.referralCount || 0}</b>\n` +
+            (sharedAddrUsers ? `🚩 <b>Same address used by ${sharedAddrUsers} other account(s)</b>\n` : '') +
             `📅 ${withdrawal.createdAt.toLocaleString()}`;
         await tgSend(ADMIN_ID, text, {
             reply_markup: { inline_keyboard: [[
