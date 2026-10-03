@@ -23,7 +23,7 @@ import { isMember } from '../lib/telegram.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
-import { TASK_MIN_WAIT_SECONDS, AD_NETWORKS, AD_MIN_WAIT_SECONDS, AD_TOKEN_MAX_AGE_SECONDS } from '../lib/constants.js';
+import { TASK_MIN_WAIT_SECONDS, AD_NETWORKS, AD_MIN_WAIT_SECONDS, AD_TOKEN_MAX_AGE_SECONDS, AD_MIN_GAP_BETWEEN_CLAIMS_MS } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
 
 const SECRET = process.env.TASK_SIGNING_SECRET;
@@ -67,6 +67,7 @@ async function handleTaskComplete(req, res, db, userId) {
     const user = await users.findOne({ _id: userId });
     if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
     if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+    if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
     if ((user.completedTasks || []).includes(taskId)) return res.status(200).json({ ok: false, alreadyDone: true });
 
     let taskObjId;
@@ -209,25 +210,35 @@ async function handleAdWatchClaim(req, res, db, userId) {
         {
             _id: userId,
             isBanned: { $ne: true },
+            accountLocked: { $ne: true },
             [countField]: { $lt: dailyLimit },
             usedAdStarts: { $ne: tokenKey },
-            ...REWARD_ELIGIBLE_FILTER,
+            // min gap between two ad rewards — a script looping start→claim can't beat a real ad's play time
+            $and: [
+                REWARD_ELIGIBLE_FILTER,
+                { $or: [{ lastAdClaimAt: { $exists: false } }, { lastAdClaimAt: { $lte: new Date(Date.now() - AD_MIN_GAP_BETWEEN_CLAIMS_MS) } }] },
+            ],
         },
         {
             // lifetimeAdViews never resets (unlike adViews.* which refills daily) —
             // it's what the referral "friend watches 20 ads" bonus counts (lib/referral.js).
             $inc: { [countField]: 1, wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc, lifetimeAdViews: 1 },
+            $set: { lastAdClaimAt: new Date() },
             $addToSet: { usedAdStarts: tokenKey },
         },
         { returnDocument: 'after' }
     );
 
     if (!gate) {
-        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, adViews: 1, multiAccountFlag: 1, channelVerified: 1, usedAdStarts: 1 } });
+        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, accountLocked: 1, adViews: 1, multiAccountFlag: 1, channelVerified: 1, usedAdStarts: 1, lastAdClaimAt: 1 } });
         if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
         if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
         if ((user.usedAdStarts || []).includes(tokenKey)) return res.status(400).json({ ok: false, error: 'ad_token_already_used' });
+        if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
         if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
+        if (user.lastAdClaimAt && Date.now() - new Date(user.lastAdClaimAt).getTime() < AD_MIN_GAP_BETWEEN_CLAIMS_MS && (user.adViews?.[network] || 0) < dailyLimit) {
+            return res.status(429).json({ ok: false, error: 'ad_claim_too_fast' });
+        }
         return res.status(200).json({ ok: false, error: 'daily_limit_reached', viewsToday: user.adViews?.[network] || 0, dailyLimit });
     }
 
@@ -312,4 +323,4 @@ export default async function handler(req, res) {
         case 'claimPromo':     return handleClaimPromo(req, res, db, userId);
         default: return res.status(400).json({ ok: false, error: 'unknown_action' });
     }
-         }
+}
