@@ -81,6 +81,7 @@ async function handleStart(req, res, db, userId) {
             _id: userId,
             cloverGamesRemaining: { $gt: 0 },
             isBanned: { $ne: true },
+            accountLocked: { $ne: true }, // locked / scam-suspected accounts earn nothing new
             ...REWARD_ELIGIBLE_FILTER,
         },
         { $inc: { cloverGamesRemaining: -1 } },
@@ -88,9 +89,10 @@ async function handleStart(req, res, db, userId) {
     );
 
     if (!gate) {
-        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, cloverGamesRemaining: 1, multiAccountFlag: 1, channelVerified: 1 } });
+        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, accountLocked: 1, cloverGamesRemaining: 1, multiAccountFlag: 1, channelVerified: 1 } });
         if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
         if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
         if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
         return res.status(200).json({ ok: false, error: 'no_plays_left', cloverGamesRemaining: user.cloverGamesRemaining || 0 });
     }
@@ -177,7 +179,7 @@ async function handleFinish(req, res, db, userId) {
     // before and is the actual unbounded-growth risk this whole system
     // targets.
     const credited = await db.collection('users').findOneAndUpdate(
-        { _id: userId, ...REWARD_ELIGIBLE_FILTER },
+        { _id: userId, isBanned: { $ne: true }, accountLocked: { $ne: true }, ...REWARD_ELIGIBLE_FILTER },
         {
             $inc: { wtcBalance: rewardWtc, lifetimeWtcEarned: rewardWtc },
             $push: {
@@ -190,6 +192,9 @@ async function handleFinish(req, res, db, userId) {
         { returnDocument: 'after' }
     );
     if (!credited) {
+        const u = await db.collection('users').findOne({ _id: userId }, { projection: { isBanned: 1, accountLocked: 1 } });
+        if (u?.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if (u?.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
         // Session stays consumed either way — the multi-account review gate
         // just means this round's reward doesn't land until they verify.
         return res.status(403).json({ ok: false, error: 'account_under_review' });
