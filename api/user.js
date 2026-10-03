@@ -11,7 +11,7 @@
 //   GET  /api/user?action=profile&initData=...
 
 import { connectToDatabase } from '../lib/mongodb.js';
-import { todayBD, REFERRAL_VELOCITY_WINDOW_MS, REFERRAL_VELOCITY_THRESHOLD, DAILY_FREE_SPINS, DAILY_CLOVER_GAMES, zeroedAdViews } from '../lib/constants.js';
+import { todayBD, DAILY_FREE_SPINS, DAILY_CLOVER_GAMES, zeroedAdViews } from '../lib/constants.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { checkAndRecordFingerprint } from '../lib/fingerprintCheck.js';
 import { isMember, OFFICIAL_CHANNEL, COMMUNITY_GROUP, checkAllMemberships, tgSend } from '../lib/telegram.js';
@@ -19,6 +19,7 @@ import { maybeAwardReferralMilestones } from '../lib/referral.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { getClientIp, checkDevice, claimDevice, claimDeviceForUser, getOwnerPublicInfo } from '../lib/ipRegistry.js';
 import { applyCors } from '../lib/cors.js';
+import { checkReferralVelocity } from '../lib/velocity.js';
 
 const ADMIN_ID = process.env.ADMIN_ID || process.env.ADMIN_TELEGRAM_ID;
 
@@ -135,52 +136,22 @@ async function handleInit(req, res, db) {
     if (newUser.referredBy) {
         const referrerId = newUser.referredBy;
         const now = new Date();
-        // ⚠️ NEW — referral signup velocity lock (lib/constants.js
-        // REFERRAL_VELOCITY_*). Every signup under this referrer pushes a
-        // timestamp onto a capped rolling list (last 50 — plenty to check
-        // a 2-minute window, negligible storage), then checks how many of
-        // those timestamps fall inside the velocity window.
+        // Referral burst guard (lib/velocity.js): every signup under this
+        // referrer is pushed onto a capped rolling list of { at, uid }; then
+        //   10+ signups in 1 minute  → the referrer is auto-LOCKED
+        //   50+ signups in 1 minute  → the accounts from that burst are BANNED
+        // The lock can only be lifted by the admin (bot.js unlock_ button).
         const referrerAfter = await users.findOneAndUpdate(
             { _id: referrerId },
             {
                 $inc: { referralCount: 1, weeklyReferralCount: 1, totalInvites: 1 },
-                $push: { recentReferralSignups: { $each: [now], $slice: -50 } },
+                $push: { recentReferralSignups: { $each: [{ at: now, uid: userId }], $slice: -100 } },
             },
             { returnDocument: 'after' }
         );
         const referrerDoc = referrerAfter?.value !== undefined ? referrerAfter.value : referrerAfter;
-        // ⚠️ CHANGED (this update) — this used to auto-lock the referrer
-        // immediately (blocking their withdrawals + referral rewards).
-        // Now it's ALERT-ONLY — the admin reviews and decides (Lock or
-        // dismiss) from the alert or the user's info panel. No automatic
-        // harm to the user just for tripping a heuristic; a legitimate
-        // fast-growing promotion doesn't get punished by default.
-        if (referrerDoc && !referrerDoc.accountLocked && !referrerDoc.velocityFlaggedAt) {
-            const windowStart = Date.now() - REFERRAL_VELOCITY_WINDOW_MS;
-            const recentCount = (referrerDoc.recentReferralSignups || [])
-                .filter((t) => new Date(t).getTime() >= windowStart).length;
-            if (recentCount >= REFERRAL_VELOCITY_THRESHOLD) {
-                // ⚠️ Atomic guard (velocityFlaggedAt:{$exists:false}) — only
-                // the first signup to cross the threshold sends the alert;
-                // this is now purely informational (velocityFlaggedAt), it
-                // does NOT block anything on its own — see accountLocked
-                // (admin-set only now) for the actual enforcement flag.
-                const justFlagged = await users.updateOne(
-                    { _id: referrerId, velocityFlaggedAt: { $exists: false } },
-                    { $set: { velocityFlaggedAt: now, velocityFlaggedReason: 'referral_velocity' } }
-                );
-                if (justFlagged.modifiedCount > 0 && ADMIN_ID) {
-                    const minutes = Math.round(REFERRAL_VELOCITY_WINDOW_MS / 60000);
-                    tgSend(
-                        ADMIN_ID,
-                        `🚩 <b>Referral velocity alert (no action taken)</b>\n\n` +
-                        `Referrer <code>${referrerId}</code> just crossed <b>${REFERRAL_VELOCITY_THRESHOLD}+</b> referral signups within <b>${minutes} minutes</b> — no real promotion delivers signups this fast.\n\n` +
-                        `Nothing is blocked — check their referral list, then Lock if it looks fake or ignore if it's a real promotion.`,
-                        { reply_markup: { inline_keyboard: [[{ text: '🔎 Review this account', callback_data: `lookup_${referrerId}` }]] } }
-                    ).catch(() => {});
-                }
-            }
-        }
+        try { await checkReferralVelocity(db, referrerDoc, userId); }
+        catch (e) { console.error('referral velocity check failed:', e); }
     }
 
     await claimDevice(db, deviceCheck.key, userId); // first account on this device — claim it
