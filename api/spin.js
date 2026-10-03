@@ -48,6 +48,7 @@ async function handleSpin(req, res, db, userId) {
             _id: userId,
             spinsRemaining: { $gt: 0 },
             isBanned: { $ne: true },
+            accountLocked: { $ne: true }, // locked / scam-suspected accounts earn nothing new
             ...REWARD_ELIGIBLE_FILTER,
         },
         { $inc: { spinsRemaining: -1 } },
@@ -55,9 +56,10 @@ async function handleSpin(req, res, db, userId) {
     );
 
     if (!gate) {
-        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, spinsRemaining: 1, multiAccountFlag: 1, channelVerified: 1 } });
+        const user = await users.findOne({ _id: userId }, { projection: { isBanned: 1, accountLocked: 1, spinsRemaining: 1, multiAccountFlag: 1, channelVerified: 1 } });
         if (!user) return res.status(404).json({ ok: false, error: 'user_not_found' });
         if (user.isBanned) return res.status(403).json({ ok: false, error: 'banned' });
+        if (user.accountLocked) return res.status(403).json({ ok: false, error: 'account_locked' });
         if (user.multiAccountFlag && !user.channelVerified) return res.status(403).json({ ok: false, error: 'account_under_review' });
         return res.status(200).json({ ok: false, error: 'no_spins_left', spinsRemaining: user.spinsRemaining || 0 });
     }
