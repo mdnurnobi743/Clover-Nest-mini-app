@@ -22,6 +22,7 @@ import { connectToDatabase } from '../lib/mongodb.js';
 import { isMember } from '../lib/telegram.js';
 import { ensureDailyReset } from '../lib/dailyReset.js';
 import { maybeAwardReferralMilestones } from '../lib/referral.js';
+import { checkAdPattern } from '../lib/adFraudCheck.js';
 import { verifyTelegramInitData } from '../lib/telegramAuth.js';
 import { TASK_MIN_WAIT_SECONDS, AD_NETWORKS, AD_MIN_WAIT_SECONDS, AD_TOKEN_MAX_AGE_SECONDS, AD_MIN_GAP_BETWEEN_CLAIMS_MS } from '../lib/constants.js';
 import { applyCors } from '../lib/cors.js';
@@ -178,7 +179,15 @@ async function handleAdWatchStart(req, res, db, userId) {
 }
 
 async function handleAdWatchClaim(req, res, db, userId) {
-    const { network, startTime, signature } = req.body;
+    // ⚠️ NEW — adOnScreenMs is OPTIONAL and purely informational: the client
+    // (index.html watchAd()) best-effort times how long the ad SDK's own
+    // runner() promise took to resolve, separately from the signed
+    // startTime→now window below (which also includes the adWatchStart
+    // round-trip + the SDK's own load time before the ad even appears).
+    // Never trusted for anything security-relevant — lib/adFraudCheck.js
+    // only ever uses it as one more data point in the admin's alert, never
+    // to gate or deny a reward.
+    const { network, startTime, signature, adOnScreenMs } = req.body;
     if (!network || !AD_NETWORKS[network]) return res.status(400).json({ ok: false, error: 'invalid_network' });
     if (!startTime || !signature) return res.status(400).json({ ok: false, error: 'missing_ad_token' });
     if (signAdStart(userId, network, startTime) !== signature) {
@@ -246,13 +255,32 @@ async function handleAdWatchClaim(req, res, db, userId) {
     try { await maybeAwardReferralMilestones(db, userId); } catch (e) { console.error('referral check (ad) failed:', e); }
 
     // ⚠️ NEW — TTL-backed ad-watch log (lib/mongodb.js has a 7-day TTL index
-    // on watchedAt). Purely a history/audit trail — never read back by any
-    // reward logic above, so a failure here must never fail the request.
+    // on watchedAt). This used to be a pure history/audit trail never read
+    // back by anything — it's now ALSO the data source for
+    // lib/adFraudCheck.js's per-user pattern analysis below, so it keeps the
+    // actual timing (tapToClaimMs, the client's best-effort adOnScreenMs),
+    // but the reward logic above never reads any of it back, and a failure
+    // here must still never fail the request.
     // ⚠️ Awaited (not fire-and-forget): on Vercel a serverless function can
     // be frozen the instant res.json() is sent, so an un-awaited insert can
     // simply never happen. try/catch keeps it non-blocking on error only.
-    try { await db.collection('adWatchLogs').insertOne({ userId, network, rewardWtc, watchedAt: new Date() }); }
-    catch (e) { console.error('adWatchLogs insert failed:', e); }
+    const tapToClaimMs = Math.round(elapsedSeconds * 1000);
+    const parsedScreenMs = Number(adOnScreenMs);
+    const safeScreenMs = Number.isFinite(parsedScreenMs) && parsedScreenMs >= 0 && parsedScreenMs < 300000 ? Math.round(parsedScreenMs) : null;
+    try {
+        await db.collection('adWatchLogs').insertOne({
+            userId, network, rewardWtc, watchedAt: new Date(),
+            tapToClaimMs, ...(safeScreenMs !== null ? { adOnScreenMs: safeScreenMs } : {}),
+        });
+    } catch (e) { console.error('adWatchLogs insert failed:', e); }
+
+    // ⚠️ NEW — ad-watching pattern check (lib/adFraudCheck.js). Runs AFTER
+    // the reward and the log above, looking at this user's last few claims
+    // on this network. Read-only except for an optional auto-lock, so a
+    // bug here must never cost the user (or block) a reward they already
+    // earned — hence the try/catch and the fact that it's the very last
+    // thing this handler does before responding.
+    try { await checkAdPattern(db, userId, network); } catch (e) { console.error('ad pattern check failed:', e); }
 
     return res.status(200).json({ ok: true, rewardWtc, viewsToday: gate.adViews?.[network] ?? 0, dailyLimit });
 }
@@ -321,6 +349,4 @@ export default async function handler(req, res) {
         case 'adWatchStart':   return handleAdWatchStart(req, res, db, userId);
         case 'adWatchClaim':   return handleAdWatchClaim(req, res, db, userId);
         case 'claimPromo':     return handleClaimPromo(req, res, db, userId);
-        default: return res.status(400).json({ ok: false, error: 'unknown_action' });
-    }
-}
+        de
